@@ -1,4 +1,4 @@
-"0","## read in game log datasets using the read_gl function"
+"0","# read in game log datasets using the read_gl function"
 "0","read_gl(""gl2000_r"", ""data/gl2000_09/GL2000.TXT"")"
 "0","read_gl(""gl2001_r"", ""data/gl2000_09/GL2001.TXT"")"
 "0","read_gl(""gl2002_r"", ""data/gl2000_09/GL2002.TXT"")"

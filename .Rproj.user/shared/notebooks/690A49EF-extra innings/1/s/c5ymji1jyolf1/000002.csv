@@ -1,4 +1,0 @@
-"0","library(tidyverse)     ## loads tidyverse library for working with data"
-"0","library(ggplot2)       ## loads ggplot2 library for creating plots"
-"0","library(showtext)      ## loads showtext library for accessing Google fonts"
-"0","library(visdat)        ## loads visdat library for examining NA values"

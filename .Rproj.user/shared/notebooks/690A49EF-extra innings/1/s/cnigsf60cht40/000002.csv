@@ -1,8 +1,0 @@
-"0","## add in fonts from Google fonts using showtext package"
-"0","font_add_google(name = ""DM Serif Text"", family = ""dm-serif-text"")"
-"0","font_add_google(name = ""Jost"", family = ""jost-sans-serif"")"
-"2","cannot rename file 'C:\Users\phodg\AppData\Local\Temp\RtmpGwf92E\92z8tBhPNqw79Ij1C9z1vBQv7mxrZh9NHHnUBkLNPUtGwv1WOh7JuKBE7w.ttf.curltmp' to 'C:\Users\phodg\AppData\Local\Temp\RtmpGwf92E\92z8tBhPNqw79Ij1C9z1vBQv7mxrZh9NHHnUBkLNPUtGwv1WOh7JuKBE7w.ttf', reason 'Access is denied'"
-"2","cannot rename file 'C:\Users\phodg\AppData\Local\Temp\RtmpGwf92E\92z8tBhPNqw79Ij1C9z1vBQv7mxrZh9NHHnUBkLNPUtGJfpWOh7JuKBE7w.ttf.curltmp' to 'C:\Users\phodg\AppData\Local\Temp\RtmpGwf92E\92z8tBhPNqw79Ij1C9z1vBQv7mxrZh9NHHnUBkLNPUtGJfpWOh7JuKBE7w.ttf', reason 'Access is denied'"
-"2","cannot rename file 'C:\Users\phodg\AppData\Local\Temp\RtmpGwf92E\92z8tBhPNqw79Ij1C9z1vBQv7mzrWR9NHHnUBkLNPUtGwv1WOh7JuKBE7w.ttf.curltmp' to 'C:\Users\phodg\AppData\Local\Temp\RtmpGwf92E\92z8tBhPNqw79Ij1C9z1vBQv7mzrWR9NHHnUBkLNPUtGwv1WOh7JuKBE7w.ttf', reason 'Access is denied'"
-"2","cannot rename file 'C:\Users\phodg\AppData\Local\Temp\RtmpGwf92E\92z8tBhPNqw79Ij1C9z1vBQv7mzrWR9NHHnUBkLNPUtGJfpWOh7JuKBE7w.ttf.curltmp' to 'C:\Users\phodg\AppData\Local\Temp\RtmpGwf92E\92z8tBhPNqw79Ij1C9z1vBQv7mzrWR9NHHnUBkLNPUtGJfpWOh7JuKBE7w.ttf', reason 'Access is denied'"
-"0","showtext_auto()"

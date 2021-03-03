@@ -1,7 +1,0 @@
-"0","## uncomment any packages that need to be installed"
-"0",""
-"0","#install.packages(""tidyverse"")         ## install tidyverse package"
-"0","#install.packages(""ggplot2"")           ## install ggplot2 package"
-"0","#install.packages(""showtext"")          ## install showtext package"
-"0","#install.packages(""visdat"")            ## install visdat package"
-"0",""
