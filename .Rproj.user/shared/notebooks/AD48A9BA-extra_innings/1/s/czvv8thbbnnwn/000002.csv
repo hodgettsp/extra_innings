@@ -1,5 +1,0 @@
-"0","# add in fonts from Google fonts using showtext package"
-"0","# font_add_google function calls the font from Google fonts"
-"0","font_add_google(name = ""Roboto Slab"", family = ""roboto-serif"")"
-"0","# loads font"
-"0","showtext_auto()"
