@@ -293,7 +293,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
         # set panel spacing to 10mm
         panel.spacing = unit(10, "mm"))+
   # set colour values
-  scale_fill_manual(values = c("#003d52", "#f6aa1c"),
+  scale_fill_manual(values = c("#0E1F40", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -328,7 +328,7 @@ ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
         # set legend orientation to horizontal
         legend.direction = "horizontal")+
   # set fill values
-  scale_fill_manual(values = c("#003d52", "#f6aa1c"),
+  scale_fill_manual(values = c("#0E1F40", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -366,7 +366,7 @@ ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
         # set legend orientation to horizontal
         legend.direction = "horizontal")+
   # set fill values
-  scale_fill_manual(values = c("#003d52", "#f6aa1c"),
+  scale_fill_manual(values = c("#0E1F40", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -416,9 +416,66 @@ parse_retrosheet_pbp(2020)
 ```
 
 ```{r season data, echo=FALSE, message=FALSE, warning=FALSE}
+# create temporary placeholder to hold list of all____.csv files
 t1 <- list.files(path = here::here("data"), pattern = ".*all.*\\.csv$")
+# create temporary placeholder for df renames
+t2 <- c("df2000", "df2001", "df2002", "df2003", "df2004", "df2005",
+        "df2006", "df2007", "df2008", "df2009", "df2010", "df2011",
+        "df2012", "df2013", "df2014", "df2015", "df2016", "df2017",
+        "df2018", "df2019", "df2020")
 
+# for the length of the first temporary vector
 for(i in 1:length(t1)){
-  assign(t1[i], read_csv(t1[i]))
-} 
+  # assign the matching character string from t2 ->
+  # as a dataframe read in using read_csv() from readr ->
+  # pull in column names from fields data and Header ->
+  # set NA to character
+  assign(t2[i], readr::read_csv(here::here("data", t1[i]),
+                         col_names = pull(fields, Header), 
+                         na = character()) %>%
+           dplyr::rename_all(tolower) %>% 
+           # mutate new column runs ->
+           # new column half_inning ->
+           # and new column runs_scored, using mutate() from dplyr
+           dplyr::mutate(runs = away_score_ct + home_score_ct,
+                  half_inning = paste(game_id, inn_ct, bat_home_id),
+                  runs_scored = (bat_dest_id > 3) + (run1_dest_id > 3) +
+                    (run2_dest_id > 3) + (run3_dest_id > 3)))
+}
+
+
+# for the length of the second temporary vector
+for(i in 1:length(t2)){
+  # assign to a new data object with suffix _hi
+  assign(paste0(t2[i], "_hi"),
+         # group by the created half_inning column
+         dplyr::group_by(get(t2[i]), half_inning) %>% 
+         # summarize outs_inning as sum of event_outs_ct   
+         dplyr::summarize(outs_inning = sum(event_outs_ct),
+                   # summarize runs_inning as a sum of runs_scored      
+                   runs_inning = sum(runs_scored),
+                   # summarize runs_start as the first value of runs
+                   runs_start = dplyr::first(runs),
+                   # summarize max_runs as runs_inning + runs_start
+                   max_runs = runs_inning + runs_start))
+}
+
+# create third temporary holder for "hi" dataset names
+# for the length of t2
+# paste _hi to the end of the index object
+for(i in 1:length(t2)){
+  t3[i] = paste0(t2[i], "_hi")
+}
+
+# join half_inning data to full season data ->
+# for the length of t2
+for(i in 1:length(t2)){
+  # assign the name at the index location in t2 ->
+  # join the object at the index location in t2 with object in t3 ->
+  # join by half_inning column
+  assign(t2[i], dplyr::inner_join(get(t2[i]), get(t3[i]), by = "half_inning") %>%
+           # mutate new column runs in the remainder of inning as ->
+           # maxmimum runs - runs
+           mutate(runs_roi = max_runs - runs))
+}
 ```
