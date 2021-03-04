@@ -505,7 +505,7 @@ for(i in 1:length(t2)){
   t3[i] =  paste0(t2[i], "_prep")
 }
 
-for(i in 1:length(t4)){
+for(i in 1:length(t3)){
   assign(paste0(t2[i], "_tmatrix"), dplyr::select(get(t3[i]), 
                                                  state, 
                                                  new_state) %>% 
@@ -519,9 +519,14 @@ for(i in 1:length(t2)){
   t3[i] =  paste0(t2[i], "_tmatrix")
 }
 
+# for the length of chr t3
+# assign a new probability table matrix with suffix _pmatrix
+# then assign a new data object of the same name and bind rows from ->
+# the probability table matrix
 for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_pmatrix"), prop.table(get(t3[i]), 1) %>% 
-           rbind(get(paste0(t2[i], "_pmatrix")), c(rep(0, 24), 1)))
+  assign(paste0(t2[i], "_pmatrix"), prop.table(get(t3[i]), 1))
+  assign(paste0(t2[i], "_pmatrix"), rbind(get(paste0(t2[i], "_pmatrix")),
+                                          c(rep(0, 24), 1)))
 }
 ```
 
@@ -538,8 +543,19 @@ count_runners_out <- function(.value){
 }
 ```
 
-```{rrunners out, echo=F}
+```{r runners out, echo=F}
 for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_rout"), )
+  assign(paste0(t2[i], "_rout"), sapply(row.names(get(t3[1])),
+         count_runners_out))[-25]
+}
+
+x <- outer(df2016_rout + 1, df2016_rout, FUN = "-")
+names(x) <- names(get(t3[17]))[-25]
+x <- cbind(x, rep(0, 24))
+
+for(i in 1:length(t2)){
+  assign(paste0(t2[i], "_rmatrix"), outer(get(paste0(t2[i], "_rout")) + 1, get(paste0(t2[i], "_rout")), FUN = "-"))
+  names()
+  assign(paste0(t2[i], "_rmatrix"), cbind(get(paste0(t2[i], "_rmatrix")), rep(0, 24)))
 }
 ```
