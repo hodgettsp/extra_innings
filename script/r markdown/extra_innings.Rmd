@@ -518,13 +518,15 @@ for(i in 1:length(t2)){
 }
 
 for(i in 1:length(t2)){
-  assign(paste0(t2[i], "_runsout"), matrix(round(get(paste0(t2[i], "_runs")$avg), 2), 8, 3))
+  assign(paste0(t2[i], "_runsout"), matrix(round(get(paste0(t2[i], "_runs"))[2], 2), 8, 3))
   dimnames(t3[i])[[2]] <- c("0 outs", "1 out", "2 outs")
   dimnames(t3[i])[[1]] <- c("000", "001", "010", "011",
                             "100", "101", "110", "111")
 }
-
-x <- get(t2[5]$outs_ct)
+x <- matrix(round(df2016_runs$avg, 2), 8, 3)
+dimnames(x)[[2]] <- c("0 outs", "1 out", "2 outs")
+dimnames(x)[[1]] <- c("000", "001", "010", "011",
+                            "100", "101", "110", "111")
 
 # join half_inning data to full season data ->
 # for the length of t2
