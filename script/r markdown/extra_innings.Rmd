@@ -500,14 +500,24 @@ for(i in 1:length(t2)){
 # remove data objects with names in t2 and t3
 rm(list = c(t2, t3))
 
+# for the length of t2
 for(i in 1:length(t2)){
+  # assign new object with indexed t2 name and suffix _ematrix ->
+  # filtered from _roi objects for complete innings (outs == 3)
   assign(paste0(t2[i], "_ematrix"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3))
 }
 
+# for the length of t2
 for(i in 1:length(t2)){
-  assign(paste0(t2[i], "_runs"), dplyr::group_by(get(paste0(t2[i], "_ematrix")), state) %>% 
-           dplyr::summarise(avg = mean(runs_roi)) %>% 
-           dplyr::mutate(outs = substr(state, 5, 5)) %>% 
+  # assign new objects with suffix _runs ->
+  # grouped by state values in _ematrix objects ->
+  assign(paste0(t2[i], "_runs"), dplyr::group_by(get(paste0(t2[i], "_ematrix")), state) %>%
+           # use summarise to compute the mean value of runs_roi values ->
+           dplyr::summarise(avg = mean(runs_roi)) %>%
+           # use mutate to create new outs column ->
+           # using substrings of state starting and stopping at position 5 ->
+           dplyr::mutate(outs = substr(state, 5, 5)) %>%
+           # arrange new object by outs values
            dplyr::arrange(outs))
 }
 
