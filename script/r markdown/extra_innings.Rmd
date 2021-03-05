@@ -497,7 +497,8 @@ for(i in 1:length(t2)){
            dplyr::filter((state != new_state) | (runs_scored > 0)))
 }
 
-memory.limit(size = 160000)
+# remove data objects with names in t2 and t3
+rm(list = c(t2, t3))
 
 for(i in 1:length(t2)){
   assign(paste0(t2[i], "_ematrix"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3))
@@ -514,19 +515,40 @@ for(i in 1:length(t2)){
 # for the length of t2
 # paste _hi to the end of the index object
 for(i in 1:length(t2)){
-  t3[i] =  paste0(t2[i], "_runsout")
+  t3[i] =  paste0(t2[i], "_ematrix")
 }
 
+rm(list = t3)
+
+# create third temporary holder for "hi" dataset names
+# for the length of t2
+# paste _hi to the end of the index object
 for(i in 1:length(t2)){
-  assign(paste0(t2[i], "_runsout"), matrix(round(get(paste0(t2[i], "_runs"))[2], 2), 8, 3))
-  dimnames(t3[i])[[2]] <- c("0 outs", "1 out", "2 outs")
-  dimnames(t3[i])[[1]] <- c("000", "001", "010", "011",
-                            "100", "101", "110", "111")
+  t3[i] =  paste0(t2[i], "_runs")
 }
-x <- matrix(round(df2016_runs$avg, 2), 8, 3)
-dimnames(x)[[2]] <- c("0 outs", "1 out", "2 outs")
-dimnames(x)[[1]] <- c("000", "001", "010", "011",
-                            "100", "101", "110", "111")
+
+# for the length of t2
+for(i in 1:length(t2)){
+  # assign a new object with name of indexed item in t2 ->
+  # with suffix _runsout and ->
+  # assign new object as a matrix and round values in column 2
+  assign(paste0(t2[i], "_runsout"), as.matrix(round(get(paste0(t2[i], "_runs"))[2], 2)))
+  # assign object under previously used name as a matrix of dimensions 8 rows, 3 columns
+  assign(paste0(t2[i], "_runsout"), matrix(get(paste0(t2[i], "_runsout")), 8, 3))
+  # assign object under previously used name and set matrix column names with ->
+  # magrittr set_colnames and set matrix row names using magritter set_rownames
+  assign(paste0(t2[i], "_runsout"), magrittr::set_colnames(get(paste0(t2[i], "_runsout")), 
+                                                           c("0 outs", "1 out", "2 outs")) %>% 
+           magrittr::set_rownames(c("000", "001", "010", "011", "100", "101", "110", "111")))
+
+}
+
+
+
+
+
+
+
 
 # join half_inning data to full season data ->
 # for the length of t2
