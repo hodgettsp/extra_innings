@@ -477,6 +477,61 @@ for(i in 1:length(t2)){
   # assign the name at the index location in t2 ->
   # join the object at the index location in t2 with object in t3 ->
   # join by half_inning column
+  assign(paste0(t2[i], "_roi"), dplyr::inner_join(get(t2[i]), get(t3[i]), by = "half_inning") %>%
+           dplyr::mutate(runs_roi = max_runs - runs) %>% 
+           # mutate new column runs in the remainder of inning as ->
+           # maxmimum runs - runs
+           dplyr::mutate(bases = paste(ifelse(base1_run_id > '', 1, 0),
+                                ifelse(base2_run_id > '', 1, 0),
+                                ifelse(base3_run_id > '', 1, 0), sep = ""),
+                  state = paste(bases, outs_ct),
+                  nrunner1 = as.numeric(run1_dest_id == 1 | bat_dest_id == 1),
+                  nrunner2 = as.numeric(run1_dest_id == 2 | run2_dest_id == 2 |
+                                          bat_dest_id == 2),
+                  nrunner3 = as.numeric(run1_dest_id == 3 | run2_dest_id == 3 |
+                                          run3_dest_id == 3 | bat_dest_id == 3),
+                  nouts = outs_ct + event_outs_ct,
+                  new_bases = paste(nrunner1, nrunner2,
+                                    nrunner3, sep = ""),
+                  new_state = paste(new_bases, nouts)) %>% 
+           dplyr::filter((state != new_state) | (runs_scored > 0)))
+}
+
+memory.limit(size = 160000)
+
+for(i in 1:length(t2)){
+  assign(paste0(t2[i], "_ematrix"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3))
+}
+
+for(i in 1:length(t2)){
+  assign(paste0(t2[i], "_runs"), dplyr::group_by(get(paste0(t2[i], "_ematrix")), state) %>% 
+           dplyr::summarise(avg = mean(runs_roi)) %>% 
+           dplyr::mutate(outs = substr(state, 5, 5)) %>% 
+           dplyr::arrange(outs))
+}
+
+# create third temporary holder for "hi" dataset names
+# for the length of t2
+# paste _hi to the end of the index object
+for(i in 1:length(t2)){
+  t3[i] =  paste0(t2[i], "_runsout")
+}
+
+for(i in 1:length(t2)){
+  assign(paste0(t2[i], "_runsout"), matrix(round(get(paste0(t2[i], "_runs")$avg), 2), 8, 3))
+  dimnames(t3[i])[[2]] <- c("0 outs", "1 out", "2 outs")
+  dimnames(t3[i])[[1]] <- c("000", "001", "010", "011",
+                            "100", "101", "110", "111")
+}
+
+x <- get(t2[5]$outs_ct)
+
+# join half_inning data to full season data ->
+# for the length of t2
+for(i in 1:length(t2)){
+  # assign the name at the index location in t2 ->
+  # join the object at the index location in t2 with object in t3 ->
+  # join by half_inning column
   assign(paste0(t2[i], "_prep"), dplyr::inner_join(get(t2[i]), get(t3[i]), by = "half_inning") %>%
            # mutate new column runs in the remainder of inning as ->
            # maxmimum runs - runs
