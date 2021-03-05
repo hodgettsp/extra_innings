@@ -514,7 +514,7 @@ for(i in 1:length(t3)){
 
 # reuse third temporary holder for "_tmatrix" table names
 # for the length of t2
-# paste _prep to the end of the index object
+# paste _tmatrix to the end of the index object
 for(i in 1:length(t2)){
   t3[i] =  paste0(t2[i], "_tmatrix")
 }
@@ -549,13 +549,46 @@ for(i in 1:length(t3)){
          count_runners_out))[-25]
 }
 
-x <- outer(df2016_rout + 1, df2016_rout, FUN = "-")
-names(x) <- names(get(t3[17]))[-25]
-x <- cbind(x, rep(0, 24))
-
+# reuse third temporary holder for "_pmatrix" table names
+# for the length of t2
+# paste _pmatrix to the end of the index object
 for(i in 1:length(t2)){
+  t3[i] =  paste0(t2[i], "_rmatrix")
+}
+
+# create runs calculation matrix ->
+# for the length of t2 ->
+for(i in 1:length(t2)){
+  # assign a new object with suffix _rmatrix ->
+  # use the outer function to perform the run calculation shown in formula ->
+  # runs = nrunnersbefore + outs before + 1 - nrunnersafter + outsafter
   assign(paste0(t2[i], "_rmatrix"), outer(get(paste0(t2[i], "_rout")) + 1, get(paste0(t2[i], "_rout")), FUN = "-"))
-  names()
+  # assign names in tmatrix to rmatrix
+  names(t3[1]) <- names(paste0(t2[i], "_tmatrix"))[-25]
+  # reassign new rmatrix objects and bind new column
   assign(paste0(t2[i], "_rmatrix"), cbind(get(paste0(t2[i], "_rmatrix")), rep(0, 24)))
 }
+```
+
+```{r simulate function, echo=F}
+sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
+  s <- start
+  path <- NULL
+  runs <- 0
+  while(s < 25){
+    s.new <- sample(1:25, size = 1, prob = .tmatrix[s, ])
+    path <- c(path, s.new)
+    runs <- runs + .rmatrix[s, s.new]
+    s <- s.new
+  }
+  runs
+}
+```
+
+```{r simulation half inning, echo=FALSE}
+set.seed(5)
+
+r_simulation <- replicate(10000, sim_half_inning(df2020_tmatrix, df2020_rmatrix))
+
+table(r_simulation)
 ```
