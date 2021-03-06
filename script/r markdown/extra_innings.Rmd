@@ -291,7 +291,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
         # set panel spacing to 10mm
         panel.spacing = unit(10, "mm"))+
   # set colour values
-  scale_fill_manual(values = c("#0E1F40", "#f6aa1c"),
+  scale_fill_manual(values = c("#FEC6D6", "#F7E775"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -497,14 +497,35 @@ for(i in 1:length(t2)){
            dplyr::filter((state != new_state) | (runs_scored > 0)))
 }
 
+# create empty temporary holder
+t4 <- c()
+
+# create third temporary holder for "hi" dataset names
+# for the length of t2
+# paste _hi to the end of the index object
+for(i in 1:length(t2)){
+  t4[i] =  paste0(t2[i], "_roi")
+}
+
 # remove data objects with names in t2 and t3
-rm(list = c(t2, t3))
+#rm(list = c(t2, t3))
+
+memory.limit(size = 16000)
 
 # for the length of t2
 for(i in 1:length(t2)){
   # assign new object with indexed t2 name and suffix _ematrix ->
   # filtered from _roi objects for complete innings (outs == 3)
   assign(paste0(t2[i], "_ematrix"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3))
+}
+
+t5 <- c()
+
+# create third temporary holder for "hi" dataset names
+# for the length of t2
+# paste _hi to the end of the index object
+for(i in 1:length(t2)){
+  t5[i] =  paste0(t2[i], "_ematrix")
 }
 
 # for the length of t2
@@ -521,20 +542,13 @@ for(i in 1:length(t2)){
            dplyr::arrange(outs))
 }
 
-# create third temporary holder for "hi" dataset names
-# for the length of t2
-# paste _hi to the end of the index object
-for(i in 1:length(t2)){
-  t3[i] =  paste0(t2[i], "_ematrix")
-}
-
-rm(list = t3)
+t6 <- c()
 
 # create third temporary holder for "hi" dataset names
 # for the length of t2
 # paste _hi to the end of the index object
 for(i in 1:length(t2)){
-  t3[i] =  paste0(t2[i], "_runs")
+  t6[i] =  paste0(t2[i], "_runs")
 }
 
 # for the length of t2
@@ -553,12 +567,26 @@ for(i in 1:length(t2)){
 
 }
 
+rm(list = c(t3, t4, t5, t6))
 
 
+# SIMULATION MATRICES
 
-
-
-
+# for the length of the second temporary vector
+for(i in 1:length(t2)){
+  # assign to a new data object with suffix _hi
+  assign(paste0(t2[i], "_hi"),
+         # group by the created half_inning column
+         dplyr::group_by(get(t2[i]), half_inning) %>% 
+         # summarize outs_inning as sum of event_outs_ct   
+         dplyr::summarize(outs_inning = sum(event_outs_ct),
+                   # summarize runs_inning as a sum of runs_scored      
+                   runs_inning = sum(runs_scored),
+                   # summarize runs_start as the first value of runs
+                   runs_start = dplyr::first(runs),
+                   # summarize max_runs as runs_inning + runs_start
+                   max_runs = runs_inning + runs_start))
+}
 
 # join half_inning data to full season data ->
 # for the length of t2
@@ -587,25 +615,29 @@ for(i in 1:length(t2)){
            dplyr::mutate(new_state = gsub("[0-1]{3} 3", "3", new_state)))
 }
 
+t4 <- c()
+
 # reuse third temporary holder for "prep" dataset names
 # for the length of t2
 # paste _prep to the end of the index object
 for(i in 1:length(t2)){
-  t3[i] =  paste0(t2[i], "_prep")
+  t4[i] =  paste0(t2[i], "_prep")
 }
 
 for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_tmatrix"), dplyr::select(get(t3[i]), 
+  assign(paste0(t2[i], "_tmatrix"), dplyr::select(get(t4[i]), 
                                                  state, 
                                                  new_state) %>% 
            table())
 }
 
+t5 <- c()
+
 # reuse third temporary holder for "_tmatrix" table names
 # for the length of t2
 # paste _tmatrix to the end of the index object
 for(i in 1:length(t2)){
-  t3[i] =  paste0(t2[i], "_tmatrix")
+  t5[i] =  paste0(t2[i], "_tmatrix")
 }
 
 # for the length of chr t3
@@ -613,7 +645,7 @@ for(i in 1:length(t2)){
 # then assign a new data object of the same name and bind rows from ->
 # the probability table matrix
 for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_pmatrix"), prop.table(get(t3[i]), 1))
+  assign(paste0(t2[i], "_pmatrix"), prop.table(get(t5[i]), 1))
   assign(paste0(t2[i], "_pmatrix"), rbind(get(paste0(t2[i], "_pmatrix")),
                                           c(rep(0, 24), 1)))
 }
@@ -624,7 +656,7 @@ Runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners
 $$RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$$
 ```{r count function, echo=FALSE}
 count_runners_out <- function(.value){
-  .value %>% 
+  .value %>%
     stringr::str_split("") %>% 
     purrr::pluck(1) %>% 
     as.numeric() %>% 
