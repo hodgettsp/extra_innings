@@ -443,8 +443,9 @@ for(i in 1:length(t1)){
                   runs_scored = (bat_dest_id > 3) + (run1_dest_id > 3) +
                     (run2_dest_id > 3) + (run3_dest_id > 3)))
 }
+```
 
-
+```{r runs expectancy matrix, echo=F}
 # for the length of the second temporary vector
 for(i in 1:length(t2)){
   # assign to a new data object with suffix _hi
@@ -510,7 +511,20 @@ for(i in 1:length(t2)){
 # remove data objects with names in t2 and t3
 #rm(list = c(t2, t3))
 
-memory.limit(size = 16000)
+#memory.limit(size = 16000)
+
+# for the length of t2
+for(i in 1:length(t2)){
+  # assign a new object with indexed name and suffix _prob ->
+  # filter for only 3 out innings
+  assign(paste0(t2[i], "_prob"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3) %>%
+           # group by state values
+           dplyr::group_by(state) %>%
+           # calculate the probability of a run given a state as ->
+           # the mean of runs_roi when greater than or equal to 1 ->
+           # or when at least one run was scored
+           dplyr::summarise(prob = mean(runs_roi >= 1)))
+}
 
 # for the length of t2
 for(i in 1:length(t2)){
@@ -568,8 +582,9 @@ for(i in 1:length(t2)){
 }
 
 rm(list = c(t3, t4, t5, t6))
+```
 
-
+```{r simulation matrices, echo=F}
 # SIMULATION MATRICES
 
 # for the length of the second temporary vector
