@@ -291,7 +291,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
         # set panel spacing to 10mm
         panel.spacing = unit(10, "mm"))+
   # set colour values
-  scale_fill_manual(values = c("#FEC6D6", "#F7E775"),
+  scale_fill_manual(values = c("#00458f", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -326,7 +326,7 @@ ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
         # set legend orientation to horizontal
         legend.direction = "horizontal")+
   # set fill values
-  scale_fill_manual(values = c("#0E1F40", "#f6aa1c"),
+  scale_fill_manual(values = c("#00458f", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -364,7 +364,7 @@ ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
         # set legend orientation to horizontal
         legend.direction = "horizontal")+
   # set fill values
-  scale_fill_manual(values = c("#0E1F40", "#f6aa1c"),
+  scale_fill_manual(values = c("#00458f", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -523,7 +523,7 @@ for(i in 1:length(t2)){
            # calculate the probability of a run given a state as ->
            # the mean of runs_roi when greater than or equal to 1 ->
            # or when at least one run was scored
-           dplyr::summarise(prob = mean(runs_roi >= 1)))
+           dplyr::summarise(run_prob = mean(runs_roi >= 1)))
 }
 
 # for the length of t2
@@ -639,6 +639,7 @@ for(i in 1:length(t2)){
   t4[i] =  paste0(t2[i], "_prep")
 }
 
+# create full transition matrices
 for(i in 1:length(t3)){
   assign(paste0(t2[i], "_tmatrix"), dplyr::select(get(t4[i]), 
                                                  state, 
@@ -664,6 +665,50 @@ for(i in 1:length(t3)){
   assign(paste0(t2[i], "_pmatrix"), rbind(get(paste0(t2[i], "_pmatrix")),
                                           c(rep(0, 24), 1)))
 }
+
+for(i in 1:length(t2)){
+  assign(paste0(t2[i], "_2Bpmatrix"), get(paste0(t2[i], "_pmatrix"))[7, ])
+  assign(paste0(t2[i], "_2Bpmatrix"), as.matrix(get(paste0(t2[i], "_2Bpmatrix"))))
+  assign(paste0(t2[i], "_2Bpmatrix"), get(paste0(t2[i], "_2Bpmatrix"))[-25, ])
+  assign(paste0(t2[i], "_2Bpmatrix"), cbind(get(paste0(t2[i], "_prob")), get(paste0(t2[i], "_2Bpmatrix"))))
+  assign(paste0(t2[i], "_2Bpmatrix"), dplyr::rename(get(paste0(t2[i], "_2Bpmatrix")), transfer_prob = 3))
+  assign(paste0(t2[i], "_2Bpmatrix"), dplyr::mutate(get(paste0(t2[i], "_2Bpmatrix")),
+                                                    combined_prob = case_when(transfer_prob > 0 ~ (prob * prob[7]),
+                                   TRUE ~ prob * transfer_prob)))
+}
+
+#--------------- 2B ---------------
+
+
+for(i in 1:length(t3)){
+  assign(paste0(t2[i], "_2Btmatrix"), dplyr::select(get(t4[i]), 
+                                                 state, 
+                                                 new_state) %>%
+           dplyr::filter(state == "010 0") %>% 
+           table())
+}
+
+# reuse third temporary holder for "_tmatrix" table names
+# for the length of t2
+# paste _tmatrix to the end of the index object
+for(i in 1:length(t2)){
+  t5[i] =  paste0(t2[i], "_2Btmatrix")
+}
+
+# for the length of chr t3
+# assign a new probability table matrix with suffix _pmatrix
+# then assign a new data object of the same name and bind rows from ->
+# the probability table matrix
+for(i in 1:length(t3)){
+  assign(paste0(t2[i], "_2Bpmatrix"), prop.table(get(t5[i]), 1))
+  assign(paste0(t2[i], "_2Bpmatrix"), rbind(get(paste0(t2[i], "_2Bpmatrix")),
+                                          c(rep(0, 5), 1)))
+}
+
+x <- as.data.frame(df2019_tmatrix)
+y <- as.data.frame(df2019_2Btmatrix)
+
+#rm(list = c(t3, t4, t5, t6))
 ```
 
 Runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners}$ and outs $O$ before $(b)$ the event plus one and the number of runners $N_{runners}$ plus outs $O$ after $(a)$ after the event.
@@ -681,7 +726,7 @@ count_runners_out <- function(.value){
 
 ```{r runners out, echo=F}
 for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_rout"), sapply(row.names(get(t3[1])),
+  assign(paste0(t2[i], "_rout"), sapply(row.names(get(t5[1])),
          count_runners_out))[-25]
 }
 
@@ -724,7 +769,7 @@ sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
 ```{r simulation half inning, echo=FALSE}
 set.seed(5)
 
-r_simulation <- replicate(10000, sim_half_inning(df2020_tmatrix, df2020_rmatrix))
+r_simulation <- replicate(10000, sim_half_inning(df2019_tmatrix, df2019_rmatrix))
 
 table(r_simulation)
 ```
