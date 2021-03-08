@@ -417,6 +417,9 @@ fields <- read_csv(here::here("data/fields.csv"))
 ```{r season data, echo=FALSE, message=FALSE, warning=FALSE}
 # code in this section has been co-opted from chapter nine of Analyzing Baseball Data with R by Marchi, Albert, and Baumer (2018).
 
+##----
+# LOAD FANGRAPHS DATA
+
 # create temporary placeholder to hold list of all____.csv files
 t1 <- list.files(path = here::here("data"), pattern = ".*all.*\\.csv$")
 # create temporary placeholder for df renames
@@ -425,7 +428,7 @@ t2 <- c("df2000", "df2001", "df2002", "df2003", "df2004", "df2005",
         "df2012", "df2013", "df2014", "df2015", "df2016", "df2017",
         "df2018", "df2019", "df2020")
 
-# for the length of the first temporary vector
+# for the length of the temporary vector
 for(i in 1:length(t1)){
   # assign the matching character string from t2 ->
   # as a dataframe read in using read_csv() from readr ->
@@ -446,7 +449,10 @@ for(i in 1:length(t1)){
 ```
 
 ```{r runs expectancy matrix, echo=F}
-# for the length of the second temporary vector
+##----
+# GENERATE HALF-INNING DATA
+
+# for the length of the temporary vector
 for(i in 1:length(t2)){
   # assign to a new data object with suffix _hi
   assign(paste0(t2[i], "_hi"),
@@ -462,6 +468,10 @@ for(i in 1:length(t2)){
                    max_runs = runs_inning + runs_start))
 }
 
+
+##----
+# GENERATE NEXT TEMPORARY HOLDER
+
 # create empty temporary holder
 t3 <- c()
 
@@ -471,6 +481,10 @@ t3 <- c()
 for(i in 1:length(t2)){
   t3[i] =  paste0(t2[i], "_hi")
 }
+
+
+##----
+# JOIN HALF-INNINGS DATA TO FULL DATA
 
 # join half_inning data to full season data ->
 # for the length of t2
@@ -498,6 +512,10 @@ for(i in 1:length(t2)){
            dplyr::filter((state != new_state) | (runs_scored > 0)))
 }
 
+
+##----
+# GENERATE TEMPORARY HOLDER
+
 # create empty temporary holder
 t4 <- c()
 
@@ -513,11 +531,15 @@ for(i in 1:length(t2)){
 
 #memory.limit(size = 16000)
 
+
+##----
+# GENERATE PROBABILITY RUN EXPECTANCY CHART FOR AT LEAST 1 RUN
+
 # for the length of t2
 for(i in 1:length(t2)){
   # assign a new object with indexed name and suffix _prob ->
   # filter for only 3 out innings
-  assign(paste0(t2[i], "_prob"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3) %>%
+  assign(paste0(t2[i], "_prob1"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3) %>%
            # group by state values
            dplyr::group_by(state) %>%
            # calculate the probability of a run given a state as ->
@@ -526,12 +548,37 @@ for(i in 1:length(t2)){
            dplyr::summarise(run_prob = mean(runs_roi >= 1)))
 }
 
+
+##----
+# GENERATE PROBABILITY RUN EXPECTANCY CHART FOR AT LEAST 2 RUNS
+
+# for the length of t2
+for(i in 1:length(t2)){
+  # assign a new object with indexed name and suffix _prob ->
+  # filter for only 3 out innings
+  assign(paste0(t2[i], "_prob2"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3) %>%
+           # group by state values
+           dplyr::group_by(state) %>%
+           # calculate the probability of a run given a state as ->
+           # the mean of runs_roi when greater than or equal to 1 ->
+           # or when at least one run was scored
+           dplyr::summarise(run_prob = mean(runs_roi >= 2)))
+}
+
+
+##----
+# FILTER DATA FOR INNINGS THAT ONLY REACH 3 OUTS
+
 # for the length of t2
 for(i in 1:length(t2)){
   # assign new object with indexed t2 name and suffix _ematrix ->
   # filtered from _roi objects for complete innings (outs == 3)
   assign(paste0(t2[i], "_ematrix"), dplyr::filter(get(paste0(t2[i], "_roi")), outs_inning == 3))
 }
+
+
+##----
+# GENERATE TEMPORARY HOLDER
 
 t5 <- c()
 
@@ -541,6 +588,11 @@ t5 <- c()
 for(i in 1:length(t2)){
   t5[i] =  paste0(t2[i], "_ematrix")
 }
+
+
+
+##----
+# GENERATE THE MEAN RUNS ROI AND OUTS DATA
 
 # for the length of t2
 for(i in 1:length(t2)){
@@ -556,6 +608,10 @@ for(i in 1:length(t2)){
            dplyr::arrange(outs))
 }
 
+
+##----
+# GENERATE TEMPORARY HOLDER
+
 t6 <- c()
 
 # create third temporary holder for "hi" dataset names
@@ -565,27 +621,34 @@ for(i in 1:length(t2)){
   t6[i] =  paste0(t2[i], "_runs")
 }
 
+
+##----
+# GENERATE COMPLETE RUNS EXPECTANCY 24 MATRIX
+
 # for the length of t2
 for(i in 1:length(t2)){
   # assign a new object with name of indexed item in t2 ->
   # with suffix _runsout and ->
   # assign new object as a matrix and round values in column 2
-  assign(paste0(t2[i], "_runsout"), as.matrix(round(get(paste0(t2[i], "_runs"))[2], 2)))
+  assign(paste0(t2[i], "_re24"), as.matrix(round(get(paste0(t2[i], "_runs"))[2], 2)))
   # assign object under previously used name as a matrix of dimensions 8 rows, 3 columns
-  assign(paste0(t2[i], "_runsout"), matrix(get(paste0(t2[i], "_runsout")), 8, 3))
+  assign(paste0(t2[i], "_re24"), matrix(get(paste0(t2[i], "_re24")), 8, 3))
   # assign object under previously used name and set matrix column names with ->
   # magrittr set_colnames and set matrix row names using magritter set_rownames
-  assign(paste0(t2[i], "_runsout"), magrittr::set_colnames(get(paste0(t2[i], "_runsout")), 
+  assign(paste0(t2[i], "_re24"), magrittr::set_colnames(get(paste0(t2[i], "_re24")), 
                                                            c("0 outs", "1 out", "2 outs")) %>% 
            magrittr::set_rownames(c("000", "001", "010", "011", "100", "101", "110", "111")))
 
 }
 
-rm(list = c(t3, t4, t5, t6))
+#rm(list = c(t3, t4, t5, t6))
 ```
 
 ```{r simulation matrices, echo=F}
 # SIMULATION MATRICES
+
+##----
+# GENERATE HALF-INNING DATA
 
 # for the length of the second temporary vector
 for(i in 1:length(t2)){
@@ -602,6 +665,14 @@ for(i in 1:length(t2)){
                    # summarize max_runs as runs_inning + runs_start
                    max_runs = runs_inning + runs_start))
 }
+
+
+# only for use on laptop
+memory.limit(size = 16000)
+
+
+##----
+# JOIN HALF-INNING DATA TO FULL DATASETS
 
 # join half_inning data to full season data ->
 # for the length of t2
@@ -630,6 +701,10 @@ for(i in 1:length(t2)){
            dplyr::mutate(new_state = gsub("[0-1]{3} 3", "3", new_state)))
 }
 
+
+##----
+# GENERATE TEMPORARY HOLDER
+
 t4 <- c()
 
 # reuse third temporary holder for "prep" dataset names
@@ -639,13 +714,22 @@ for(i in 1:length(t2)){
   t4[i] =  paste0(t2[i], "_prep")
 }
 
+
+##----
+# GENERATE TRANSITION MATRICES
+
 # create full transition matrices
 for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_tmatrix"), dplyr::select(get(t4[i]), 
-                                                 state, 
-                                                 new_state) %>% 
+  assign(paste0(t2[i], "_tmatrix"), 
+         dplyr::select(get(t4[i]),
+                       state,
+                       new_state) %>% 
            table())
 }
+
+
+##----
+# GENERATE TEMPORARY HOLDER
 
 t5 <- c()
 
@@ -655,6 +739,10 @@ t5 <- c()
 for(i in 1:length(t2)){
   t5[i] =  paste0(t2[i], "_tmatrix")
 }
+
+
+##----
+# GENERATE PROBABILITY TABLES FROM TRANSITION MATRICES
 
 # for the length of chr t3
 # assign a new probability table matrix with suffix _pmatrix
@@ -666,27 +754,42 @@ for(i in 1:length(t3)){
                                           c(rep(0, 24), 1)))
 }
 
+
+
+##----
+# THIS SECTION BEGINS SIMULATION MATRICES FOR PLAYER ON SECOND NO ONE OUT
+
+
+# PROVIDES THE PROBABILITY OF SCORING ONE RUN FROM A BASE-OUT-STATE ->
+# PROVIDES THE TRANSITION PROBABILITY OF MOVING FROM ONE STATE TO MAN ON SECOND NO ONE OUT ->
+# PROVIDES PROBABILITY OF A STATE OCCURRING AFTER MAN ON SECOND NO ONE OUT
 for(i in 1:length(t2)){
   assign(paste0(t2[i], "_2Bpmatrix"), get(paste0(t2[i], "_pmatrix"))[7, ])
   assign(paste0(t2[i], "_2Bpmatrix"), as.matrix(get(paste0(t2[i], "_2Bpmatrix"))))
   assign(paste0(t2[i], "_2Bpmatrix"), get(paste0(t2[i], "_2Bpmatrix"))[-25, ])
-  assign(paste0(t2[i], "_2Bpmatrix"), cbind(get(paste0(t2[i], "_prob")), get(paste0(t2[i], "_2Bpmatrix"))))
+  assign(paste0(t2[i], "_2Bpmatrix"), cbind(get(paste0(t2[i], "_prob1")), get(paste0(t2[i], "_2Bpmatrix"))))
   assign(paste0(t2[i], "_2Bpmatrix"), dplyr::rename(get(paste0(t2[i], "_2Bpmatrix")), transfer_prob = 3))
   assign(paste0(t2[i], "_2Bpmatrix"), dplyr::mutate(get(paste0(t2[i], "_2Bpmatrix")),
-                                                    combined_prob = case_when(transfer_prob > 0 ~ (prob * prob[7]),
-                                   TRUE ~ prob * transfer_prob)))
+                                                    combined_prob = case_when(transfer_prob > 0 ~ run_prob * run_prob[7],
+                                   TRUE ~ run_prob * transfer_prob)))
 }
 
-#--------------- 2B ---------------
-
-
+##----
+# GENERATE TRANSITION MATRIX FOR ONLY 010 0 STATE ->
+# TO BE USED WITH SIMULATION FUNCTIONS
 for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_2Btmatrix"), dplyr::select(get(t4[i]), 
-                                                 state, 
-                                                 new_state) %>%
+  assign(paste0(t2[i], "_2Btmatrix"), 
+         dplyr::select(get(t4[i]), 
+                       state, 
+                       new_state) %>%
            dplyr::filter(state == "010 0") %>% 
            table())
 }
+
+
+
+##----
+# GENERATE TEMPORARY HOLDER
 
 # reuse third temporary holder for "_tmatrix" table names
 # for the length of t2
@@ -695,6 +798,10 @@ for(i in 1:length(t2)){
   t5[i] =  paste0(t2[i], "_2Btmatrix")
 }
 
+
+##----
+# GENEREATE PROBABILITY TABLES FROM 2B TRANSITION MATRICES
+
 # for the length of chr t3
 # assign a new probability table matrix with suffix _pmatrix
 # then assign a new data object of the same name and bind rows from ->
@@ -702,11 +809,8 @@ for(i in 1:length(t2)){
 for(i in 1:length(t3)){
   assign(paste0(t2[i], "_2Bpmatrix"), prop.table(get(t5[i]), 1))
   assign(paste0(t2[i], "_2Bpmatrix"), rbind(get(paste0(t2[i], "_2Bpmatrix")),
-                                          c(rep(0, 5), 1)))
+                                          c(rep(0, 1), 1)))
 }
-
-x <- as.data.frame(df2019_tmatrix)
-y <- as.data.frame(df2019_2Btmatrix)
 
 #rm(list = c(t3, t4, t5, t6))
 ```
@@ -726,7 +830,7 @@ count_runners_out <- function(.value){
 
 ```{r runners out, echo=F}
 for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_rout"), sapply(row.names(get(t5[1])),
+  assign(paste0(t2[i], "_rout"), sapply(row.names(get(paste0(t2[1], "_tmatrix"))),
          count_runners_out))[-25]
 }
 
@@ -767,9 +871,16 @@ sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
 ```
 
 ```{r simulation half inning, echo=FALSE}
-set.seed(5)
+set.seed(515)
 
-r_simulation <- replicate(10000, sim_half_inning(df2019_tmatrix, df2019_rmatrix))
+runs_simulation <- replicate(20000, sim_half_inning(df2019_tmatrix, df2019_rmatrix))
 
-table(r_simulation)
+table(runs_simulation)
+
+sum(runs_simulation >= 2) / 20000
+mean(runs_simulation)
+```
+
+```{r}
+p3 <- df2020_pmatrix %*% df2020_pmatrix %*% df2020_pmatrix
 ```
