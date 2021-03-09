@@ -1,5 +1,5 @@
 ---
-title: "extra_innings"
+title: "A Consideration of Probability and Runs Scored Major League Baseball Extra-Inning Games"
 author: "Paul A. Hodgetts"
 date: "02/03/2021"
 output: pdf_document
@@ -8,6 +8,10 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# Introduction
+
+The outbreak of COVID-19 and the subsequent pandemic led to a plethora of questions and concerns in the sporting world, including whether leagues would commit to a 2020 season. For those leagues that did decide to host a 2020 seasons, various protocols were required to ensure the health and safety of the athletes and staff. For instance, the National Hockey League (NHL) Implemented bubbles with all teams within the Western Conference playing within Edmonton, Alberta and all teams within the Eastern Conference within Toronto, Ontario (Gatto, 2020). In a similar move, the National Basketball Association (NBA) established a bubble in Orlando, Florida within which teams could play out the season (Haislop, 2020). However, unlike the use of a bubbled league like the NHL and NBA, Major League Baseball (MLB) permitted teams to play games within their own stadiums, excluding the Toronto Blue Jays who were denied access to play within Canada by the Canadian federal government (McNamara, 2020; Wagner, 2020). In choosing this approach, MLB implemented other policies such as no spitting, masks being required in the dugout and bullpen, and no saunas, and twice-a-day temperature and symptom checks to name a few (Wagner, 2020). One such policy was to also introduce a new rule regarding extra-inning games, tied games that go beyond the regulation nine innings, in hopes of shortening the exposure experienced by players between teams (Allen, 2020). The rule was that if at the completion of the regulation innings a game was tied, each team would begin the subsequent half-inning with the last player to make an out on second base (Allen, 2020). As a rule change to a sport or game should ensure the fairness of the playing field, this paper looks to examine this rule change regarding whether it provides an advantage to the away team in extra-inning games through the probabilities of runs scored based on the state of events in a half-inning. Moreover, it considers whether extra-inning games in general provide an advantage to the away team through the probabilities of runs scored based on the state of events in a half-inning, and discusses strategy within the context of extra-inning games.
 
 ```{r install packages, echo=FALSE, message=FALSE, warning=FALSE}
 # uncomment any packages that need to be installed
@@ -430,6 +434,9 @@ parse_retrosheet_pbp(2020)
 ```
 
 ```{r fields data, echo=FALSE, warning=FALSE, message=FALSE}
+##----
+# FIELDS DATA
+
 # read in fields data ->
 # data is from https://github.com/maxtoki/baseball_R/tree/master/data
 fields <- read_csv(here::here("data/fields.csv"))
@@ -468,13 +475,12 @@ for(i in 1:length(t1)){
                     (run2_dest_id > 3) + (run3_dest_id > 3),
                   year = substr(game_id, 4, 7)))
 }
-
-dftotal <- rbind(df2000, df2001, df2002, df2003, df2004, df2005, df2006, df2007, df2008,
-                 df2009, df2010, df2011, df2012, df2013, df2014, df2015, df2016, df2017,
-                 df2018, df2019, df2020)
 ```
 
 ```{r runs expectancy matrix, echo=F}
+# set RAM access for RStudio to allow for knitting of RMarkdown document
+memory.limit(size = 32000)
+
 ##----
 # GENERATE HALF-INNING DATA
 
@@ -494,16 +500,6 @@ for(i in 1:length(t2)){
                    max_runs = runs_inning + runs_start))
 }
 
-dftotal_hi <- dftotal %>% 
-  dplyr::group_by(half_inning) %>% 
-  dplyr::summarise(outs_inning = sum(event_outs_ct),
-                   runs_inning = sum(runs_scored),
-                   runs_start = dplyr::first(runs),
-                   max_runs = runs_inning + runs_start)
-
-memory.limit(size = 16000)
-
-
 ##----
 # JOIN HALF-INNINGS DATA TO FULL DATA
 
@@ -516,7 +512,7 @@ for(i in 1:length(t2)){
   assign(paste0(t2[i], "_roi"), dplyr::inner_join(get(t2[i]), get(paste0(t2[i], "_hi")), by = "half_inning") %>%
            dplyr::mutate(runs_roi = max_runs - runs) %>% 
            # mutate new column runs in the remainder of inning as ->
-           # maxmimum runs - runs
+           # maximum runs - runs
            dplyr::mutate(bases = paste(ifelse(base1_run_id > '', 1, 0),
                                 ifelse(base2_run_id > '', 1, 0),
                                 ifelse(base3_run_id > '', 1, 0), sep = ""),
@@ -533,24 +529,7 @@ for(i in 1:length(t2)){
            dplyr::filter((state != new_state) | (runs_scored > 0)))
 }
 
-#memory.limit(size = 16000)
 
-dftotal <- dftotal %>% 
-  dplyr::inner_join(dftotal_hi, by = "half_inning") %>% 
-  dplyr::mutate(runs_roi = max_runs - runs) %>% 
-  dplyr::mutate(bases = paste(ifelse(base1_run_id > '', 1, 0),
-                              ifelse(base2_run_id > '', 1, 0),
-                              ifelse(base3_run_id > '', 1, 0), sep = ""),
-                state = paste(bases, outs_ct),
-                nrunner1 = as.numeric(run1_dest_id == 1 | bat_dest_id == 1),
-                nrunner2 = as.numeric(run1_dest_id == 2 | run2_dest_id == 2 |
-                                        bat_dest_id == 2),
-                nrunner3 = as.numeric(run1_dest_id == 3 | run2_dest_id == 3 |
-                                        run3_dest_id == 3 | bat_dest_id == 3),
-                nouts = outs_ct + event_outs_ct,
-                new_bases = paste(nrunner1, nrunner2, nrunner3, sep = ""),
-                new_state = paste(new_bases, nouts)) %>% 
-  dplyr::filter((state != new_state) | (runs_scored > 0))
 
 ##----
 # GENERATE PROBABILITY RUN EXPECTANCY CHART FOR AT LEAST 1 RUN
@@ -568,10 +547,6 @@ for(i in 1:length(t2)){
            dplyr::summarise(run_prob = mean(runs_roi >= 1)))
 }
 
-dftotal_prob1 <- dftotal %>% 
-  dplyr::filter(outs_inning == 3) %>% 
-  dplyr::group_by(state) %>% 
-  dplyr::summarise(run_prob = mean(runs_roi >= 1))
 
 
 ##----
@@ -590,7 +565,7 @@ for(i in 1:length(t2)){
            dplyr::summarise(run_prob = mean(runs_roi >= 2)))
 }
 
-memory.limit(size = 16000)
+
 
 ##----
 # FILTER DATA FOR INNINGS THAT ONLY REACH 3 OUTS
@@ -621,12 +596,7 @@ for(i in 1:length(t2)){
            dplyr::arrange(outs))
 }
 
-dftotal <- dftotal %>% 
-  dplyr::filter(outs_inning == 3) %>% 
-  dplyr::group_by(state) %>% 
-  dplyr::summarise(avg = mean(runs_roi)) %>% 
-  dplyr::mutate(outs = substr(state, 5, 5)) %>% 
-  dplyr::arrange(outs)
+
 
 
 ##----
@@ -648,9 +618,7 @@ for(i in 1:length(t2)){
 
 }
 
-re24total <- matrix(round(dftotal$avg, 2), 8, 3) %>% 
-  magrittr::set_colnames(c("0 outs", "1 out", "2 outs")) %>% 
-  magrittr::set_rownames(c("000", "001", "010", "011", "100", "101", "110", "111"))
+
 
 ##----
 # GENERATE NEXT TEMPORARY HOLDER
@@ -723,66 +691,21 @@ for(i in 1:length(t2)){
 }
 
 
-dftotal <- dftotal %>% 
-  dplyr::inner_join(dftotal_hi, by = "half_inning") %>% 
-  dplyr::mutate(runs_roi = max_runs - runs) %>% 
-  dplyr::mutate(bases = paste(ifelse(base1_run_id > '', 1, 0),
-                              ifelse(base2_run_id > '', 1, 0),
-                              ifelse(base3_run_id > '', 1, 0), sep = ""),
-                state = paste(bases, outs_ct),
-                nrunner1 = as.numeric(run1_dest_id == 1 | bat_dest_id == 1),
-                nrunner2 = as.numeric(run1_dest_id == 2 | run2_dest_id == 2 |
-                                        bat_dest_id == 2),
-                nrunner3 = as.numeric(run1_dest_id == 3 | run2_dest_id == 3 |
-                                        run3_dest_id == 3 | bat_dest_id == 3),
-                nouts = outs_ct + event_outs_ct,
-                new_bases = paste(nrunner1, nrunner2, nrunner3, sep = ""),
-                new_state = paste(new_bases, nouts)) %>% 
-  dplyr::filter((state != new_state) | (runs_scored > 0)) %>% 
-  dplyr::filter(outs_inning == 3, bat_event_fl == T) %>% 
-  dplyr::mutate(new_state = gsub("[0-1]{3} 3", "3", new_state))
-
-
-##----
-# GENERATE TEMPORARY HOLDER
-
-t4 <- c()
-
-# reuse third temporary holder for "prep" dataset names
-# for the length of t2
-# paste _prep to the end of the index object
-for(i in 1:length(t2)){
-  t4[i] =  paste0(t2[i], "_prep")
-}
 
 
 ##----
 # GENERATE TRANSITION MATRICES
 
 # create full transition matrices
-for(i in 1:length(t3)){
+for(i in 1:length(t2)){
   assign(paste0(t2[i], "_tmatrix"), 
-         dplyr::select(get(t4[i]),
+         dplyr::select(get(paste0(t2[i], "_prep")),
                        state,
                        new_state) %>% 
            table())
 }
 
-tmatrix_total <- dftotal %>% 
-  select(state, new_state) %>% 
-  table()
 
-##----
-# GENERATE TEMPORARY HOLDER
-
-t5 <- c()
-
-# reuse third temporary holder for "_tmatrix" table names
-# for the length of t2
-# paste _tmatrix to the end of the index object
-for(i in 1:length(t2)){
-  t5[i] =  paste0(t2[i], "_tmatrix")
-}
 
 
 ##----
@@ -792,39 +715,234 @@ for(i in 1:length(t2)){
 # assign a new probability table matrix with suffix _pmatrix
 # then assign a new data object of the same name and bind rows from ->
 # the probability table matrix
-for(i in 1:length(t3)){
-  assign(paste0(t2[i], "_pmatrix"), prop.table(get(t5[i]), 1))
+for(i in 1:length(t2)){
+  assign(paste0(t2[i], "_pmatrix"), prop.table(get(paste0(t2[i], "_tmatrix")), 1))
   assign(paste0(t2[i], "_pmatrix"), rbind(get(paste0(t2[i], "_pmatrix")),
                                           c(rep(0, 24), 1)))
 }
 
-pmatrix_total <- prop.table(tmatrix_total, 1)
-pmatrix_total <- rbind(pmatrix_total, c(rep(0, 24), 1))
 
-#rm(list = c(t3, t4, t5, t6))
+
+##----
+# GENERATE NEXT TEMPORARY HOLDER
+
+# create empty temporary holder
+t3 <- c()
+
+# for the length of t2
+# paste _hi to the end of the index object
+for(i in 1:length(t2)){
+  t3[i] =  paste0(t2[i], "_hi")
+}
+
+# remove objects in t3
+rm(list = t3)
+
+# for the length of t2
+# paste _prep to the end of the index object
+for(i in 1:length(t2)){
+  t3[i] =  paste0(t2[i], "_prep")
+}
+
+# remove objects in t3
+rm(list = t3)
+
+# remove t3
+rm(t3)
 ```
 
 Runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners}$ and outs $O$ before $(b)$ the event plus one and the number of runners $N_{runners}$ plus outs $O$ after $(a)$ after the event.
 
 $$RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$$
-```{r count function, echo=FALSE}
-count_runners_out <- function(.value){
-  .value %>%
-    stringr::str_split("") %>% 
-    purrr::pluck(1) %>% 
+```{r total data RE24, echo=F, warning=F, message=F}
+##----
+# CREATE COMBINED DATASET
+# creates a dataset of 3,915,193 observations at 1.9GB
+
+# bind all 20 seasons into one dataset by row
+dftotal <- rbind(df2000, df2001, df2002, df2003, df2004, df2005, df2006, df2007, df2008,
+                 df2009, df2010, df2011, df2012, df2013, df2014, df2015, df2016, df2017,
+                 df2018, df2019, df2020)
+
+##----
+# CREATE HALF-INNING DATA
+
+# assign new data object for half-inning data
+dftotal_hi <- dftotal %>%
+  # group by half-inning values
+  dplyr::group_by(half_inning) %>%
+  # summarise values ->
+  # outs inning is equal to event outs count
+  dplyr::summarise(outs_inning = sum(event_outs_ct),
+                   # runs inning is equal to sum of runs scored
+                   runs_inning = sum(runs_scored),
+                   # runs at start is equal to the first runs
+                   runs_start = dplyr::first(runs),
+                   # maximum runs is runs inning + runs start
+                   max_runs = runs_inning + runs_start)
+
+##----
+# JOIN DATA
+
+# assign new data object
+dftotal_joined <- dftotal %>%
+  # use inner join to join half-inning data to original data
+  dplyr::inner_join(dftotal_hi, by = "half_inning") %>%
+  # create new column runs_roi that is difference of max runs and runs
+  dplyr::mutate(runs_roi = max_runs - runs) %>%
+  # create new column bases that sets current base state ->
+  # if base1 is blank set to 0, if else set to 1 ->
+  # run for each base
+  dplyr::mutate(bases = paste(ifelse(base1_run_id > '', 1, 0),
+                              ifelse(base2_run_id > '', 1, 0),
+                              ifelse(base3_run_id > '', 1, 0), sep = ""),
+                # create new column state that is base state and current out count
+                state = paste(bases, outs_ct),
+                # create new columns to track number of runners and positions
+                nrunner1 = as.numeric(run1_dest_id == 1 | bat_dest_id == 1),
+                nrunner2 = as.numeric(run1_dest_id == 2 | run2_dest_id == 2 |
+                                        bat_dest_id == 2),
+                nrunner3 = as.numeric(run1_dest_id == 3 | run2_dest_id == 3 |
+                                        run3_dest_id == 3 | bat_dest_id == 3),
+                # create new column to count number of outs
+                nouts = outs_ct + event_outs_ct,
+                # create new column to track new base state
+                new_bases = paste(nrunner1, nrunner2, nrunner3, sep = ""),
+                # create new column that holds new state with->
+                # base position and number of outs
+                new_state = paste(new_bases, nouts)) %>% 
+  # filter such that state does not equal the new state or runs is greater than 0
+  dplyr::filter((state != new_state) | (runs_scored > 0))
+
+
+##----
+# CALCULATE RUN PROBABILITY
+
+# assign new data object
+dftotal_prob1 <- dftotal_joined %>%
+  # filter for only full innings
+  dplyr::filter(outs_inning == 3) %>%
+  # group by state
+  dplyr::group_by(state) %>%
+  # suummarise run probability of scoring at least one run from state
+  dplyr::summarise(run_prob = mean(runs_roi >= 1))
+
+
+##----
+# BUILD ESTIMATION MATRIX
+
+# reassign data object
+dftotal_joined <- dftotal_joined %>%
+  # filter for only complete innings
+  dplyr::filter(outs_inning == 3) %>%
+  # group by state
+  dplyr::group_by(state) %>%
+  # summarise to calculate the mean/average runs given a state and outs
+  dplyr::summarise(avg = mean(runs_roi)) %>%
+  # create new column to hold outs count
+  dplyr::mutate(outs = substr(state, 5, 5)) %>%
+  # arrange by outs count
+  dplyr::arrange(outs)
+
+
+##----
+# RE24 MATRIX
+
+# assign new object as an 8X3 matrix ->
+# round values to 2nd decimal place
+re24total <- matrix(round(dftotal_joined$avg, 2), 8, 3) %>%
+  # set column names to given vector values
+  magrittr::set_colnames(c("0 outs", "1 out", "2 outs")) %>%
+  # set row names to given vector values
+  magrittr::set_rownames(c("000", "001", "010", "011", "100", "101", "110", "111"))
+```
+
+```{r total data simulation, echo=F, message=F, warning=F}
+##----
+# JOIN DATA
+
+# assign new data object
+dftotal_joined <- dftotal %>%
+  # join half-inning data to original data
+  dplyr::inner_join(dftotal_hi, by = "half_inning") %>%
+  # create new column runs_roi that is difference of max runs and runs
+  dplyr::mutate(runs_roi = max_runs - runs) %>%
+  # create new column bases that sets current base state ->
+  # if base1 is blank set to 0, if else set to 1 ->
+  # run for each base
+  dplyr::mutate(bases = paste(ifelse(base1_run_id > '', 1, 0),
+                              ifelse(base2_run_id > '', 1, 0),
+                              ifelse(base3_run_id > '', 1, 0), sep = ""),
+                # create new column state that is base state and current out count
+                state = paste(bases, outs_ct),
+                # create new columns to track number of runners and positions
+                nrunner1 = as.numeric(run1_dest_id == 1 | bat_dest_id == 1),
+                nrunner2 = as.numeric(run1_dest_id == 2 | run2_dest_id == 2 |
+                                        bat_dest_id == 2),
+                nrunner3 = as.numeric(run1_dest_id == 3 | run2_dest_id == 3 |
+                                        run3_dest_id == 3 | bat_dest_id == 3),
+                # create new column to count number of outs
+                nouts = outs_ct + event_outs_ct,
+                # create new column to track new base state
+                new_bases = paste(nrunner1, nrunner2, nrunner3, sep = ""),
+                # create new column that holds new state with->
+                # base position and number of outs
+                new_state = paste(new_bases, nouts)) %>%
+  # filter such that state does not equal the new state or runs is greater than 0
+  dplyr::filter((state != new_state) | (runs_scored > 0)) %>%
+  # filter for complete innings and that the event was a batting event
+  dplyr::filter(outs_inning == 3, bat_event_fl == T) %>%
+  # create new column to hold new state
+  dplyr::mutate(new_state = gsub("[0-1]{3} 3", "3", new_state))
+
+
+##----
+# GENERATE TRANSITION MATRIX
+
+# assign new value object
+tmatrix_total <- dftotal_joined %>%
+  # select only state and new state columns
+  select(state, new_state) %>%
+  # assign object as table
+  table()
+
+
+##----
+# GENERATE PROBAILITY TABLE
+
+# create probability table object from transition matrix
+pmatrix_total <- prop.table(tmatrix_total, 1)
+# bind final column for 3 out state
+pmatrix_total <- rbind(pmatrix_total, c(rep(0, 24), 1))
+```
+
+```{r count function, echo=FALSE, warning=F, message=F}
+# assign new function count runners out ->
+# takes one argument, a state ->
+# returns the sum of the number of runners and outs
+count_runners_out <- function(.state){
+  # pipe given state value
+  .state %>%
+    # look for pattern ""
+    stringr::str_split("") %>%
+    # pluck indexed value at index 1 
+    purrr::pluck(1) %>%
+    # set as numeric
     as.numeric() %>% 
+    # sum values with removal of NAs
     sum(na.rm = T)
 }
 ```
 
 ```{r runners out, echo=F}
-for(i in 1:length(t3)){
+for(i in 1:length(t2)){
   assign(paste0(t2[i], "_rout"), sapply(row.names(get(paste0(t2[1], "_tmatrix"))),
          count_runners_out))[-25]
 }
 
-runners_out <- sapply(row.names(tmatrix_total),
-                      count_runners_out)[-25]
+
+
+t3 <- c()
 
 # reuse third temporary holder for "_pmatrix" table names
 # for the length of t2
@@ -845,6 +963,11 @@ for(i in 1:length(t2)){
   # reassign new rmatrix objects and bind new column
   assign(paste0(t2[i], "_rmatrix"), cbind(get(paste0(t2[i], "_rmatrix")), rep(0, 24)))
 }
+```
+
+```{r total runners out, echo=F, message=F, warning=F}
+runners_out <- sapply(row.names(tmatrix_total),
+                      count_runners_out)[-25]
 
 rtotal <- outer(runners_out + 1, runners_out, FUN = "-")
 names(rtotal) <- names(tmatrix_total)[-25]
@@ -867,23 +990,49 @@ sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
 ```
 
 ```{r simulation half inning, echo=FALSE}
+# set randomization seed
+# lucky number and hockey jersey number
 set.seed(515)
 
+# run 20,000 simulations 
 runs_simulation <- replicate(20000, sim_half_inning(tmatrix_total, rtotal))
 
+# assign simulations as a table
 table(runs_simulation)
 
+# calculate the probability of scoring 1 or more runs
 sum(runs_simulation >= 1) / 20000
-mean(runs_simulation)
 ```
 
-```{r}
+```{r three at-bats, echo=F, warning=F, message=F}
+# multiply probability matrix by itself three times ->
+# finds probabilities of events after three at-bats
 p3 <- pmatrix_total %*% pmatrix_total %*% pmatrix_total
 
-p3 %>% 
-  as_tibble(rownames = "state") %>% 
-  filter(state == "010 0") %>% 
-  gather(key = "new_state", value = "prob", -state) %>% 
-  arrange(desc(prob)) %>% 
+# pipe multiplied probabilities
+p3 %>%
+  # coerce object as tibble with rownames as state
+  tibble::as_tibble(rownames = "state") %>%
+  # filter for man on second no outs
+  dplyr::filter(state == "010 0") %>%
+  # gather prob values using new_state as key
+  tidyr::gather(key = "new_state", value = "prob", -state) %>%
+  # arrange by descending probability
+  dplyr::arrange(desc(prob)) %>%
+  # display tibble
   head()
 ```
+
+# References
+
+Gatto, T. (2020, August 14). *NHL bubble, explained: A guide to the hub city rules, teams & schedule for Edmonton, Toronto*. Sporting News. https://www.sportingnews.com/us/nhl/news/nhl-bubble-hub-city-rules-teams-schedule-edmonton-toronto/72k8vc0u630k19xalra66xa3c
+
+Haislop, T. (2020, August 26). *NBA bubble explained: A complete guide to the rules, teams, schedule & more for Orlando games*. Sporting News. https://www.sportingnews.com/us/nba/news/nba-bubble-rules-teams-schedule-orlando/zhap66a9hcwq1khmcex3ggabo
+
+Marchi, M., Albert, J., & Baumer, B. S. (2019). Chapter 5: Value of plays using run expectancy. In, *Analyzing baseball data with R* (2nd ed.), (pp. 111-135). CRC Press
+
+Marchi, M., Albert, J., & Baumer, B. S. (2019). Chapter 9: Simulation. In, *Analyzing baseball data with R* (2nd ed.), (pp. 201-226). CRC Press 
+
+McNamara, A. (2020, July 24). *Toronto Blue Jays to play majority of 2020 home games in Buffalo*. CBS News. https://www.cbsnews.com/news/toronto-blue-jays-home-games-buffalo-2020-season/
+
+Wagner, J. (2020, June 24). *Baseball’s New Rules: No Spitting, No Arguing, and Lots of Testing*. The New York Times. https://www.nytimes.com/2020/06/24/sports/baseball/mlb-coronavirus-rules.html
