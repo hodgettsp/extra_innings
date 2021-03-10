@@ -195,7 +195,7 @@ t2 <- ls(pattern = "_x")
 ```{r bind datasets, echo=FALSE, message=FALSE, warning=FALSE}
 # create a list of all dataframes
 dfx <- grepl("_x", names(.GlobalEnv))
-# run twice because it changes the number of items in the global environment-- 
+# run twice because it changes the number of items in the global environment-> 
 # creating issues for the next line
 dfx <- grepl("_x", names(.GlobalEnv))
 names(dfx) <- names(.GlobalEnv)
@@ -228,7 +228,7 @@ source(here::here("script/check_NA.R"))
 check_NA(reg, "reg_NA")
 check_NA(extras, "extras_NA")
 
-# remove NAs created by ties
+# remove NAs in both datasets
 reg <- reg %>% 
   filter(!is.na(winning_team))
 
@@ -242,14 +242,19 @@ check_NA(extras, "extras_NA")
 
 ```{r extra inning game win count, echo=FALSE}
 # extra inning wins/losses totals
+# winning team count
 extrawin_count <- count(extras, winning_team)
 extrawin_count <- extrawin_count %>% 
+  # rename count column
   rename(count = n) %>% 
+  # create new column for label
   mutate(game_length = "Extra")
 
 # extra inning wins/losses by year
 extra_count_yr <- count(extras, winning_team, year) %>% 
-  rename(count = n) %>% 
+  # rename count column
+  rename(count = n) %>%
+  # keep only unique values
   unique()
 ```
 
@@ -257,14 +262,20 @@ extra_count_yr <- count(extras, winning_team, year) %>%
 # regular length wins/losses totals
 regwin_count <- count(reg, winning_team)
 regwin_count <- regwin_count %>% 
-  filter(winning_team != "NA") %>% 
+  # remove NA values
+  filter(winning_team != "NA") %>%
+  # rename count column
   rename(count = n) %>% 
+  # add label column
   mutate(game_length = "Regulation")
 
 # regular length wins/losses by year
 reg_count_yr <- count(reg, winning_team, year) %>% 
+  # remove NAs
   filter(winning_team != "NA") %>%
+  # renamce count column
   rename(count = n) %>% 
+  # keep only unique values
   unique()
 ```
 
@@ -935,7 +946,10 @@ count_runners_out <- function(.state){
 ```
 
 ```{r runners out, echo=F}
+# for the length of t2
 for(i in 1:length(t2)){
+  # assign a new object with suffix _rout and apply count_runners_out function to ->
+  # object _tmatrix
   assign(paste0(t2[i], "_rout"), sapply(row.names(get(paste0(t2[1], "_tmatrix"))),
          count_runners_out))[-25]
 }
