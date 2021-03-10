@@ -2,7 +2,10 @@
 title: "A Consideration of Probability and Runs Scored Major League Baseball Extra-Inning Games"
 author: "Paul A. Hodgetts"
 date: "02/03/2021"
-output: pdf_document
+output: 
+  pdf_document:
+    latex_engine: lualatex
+abstract: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Nisl suscipit adipiscing bibendum est ultricies integer quis auctor elit. Facilisis leo vel fringilla est. Dignissim suspendisse in est ante in. Condimentum vitae sapien pellentesque habitant. Dui vivamus arcu felis bibendum ut tristique et egestas. Orci sagittis eu volutpat odio facilisis mauris. Vulputate sapien nec sagittis aliquam malesuada bibendum arcu. Ut sem viverra aliquet eget. Ullamcorper eget nulla facilisi etiam dignissim diam quis enim. Rhoncus est pellentesque elit ullamcorper dignissim. Tellus mauris a diam maecenas. Et magnis dis parturient montes nascetur ridiculus mus. Eu sem integer vitae justo. Semper feugiat nibh sed pulvinar proin. Quisque non tellus orci ac."
 ---
 
 ```{r setup, include=FALSE}
@@ -32,10 +35,6 @@ The outbreak of COVID-19 and the subsequent pandemic led to a plethora of questi
 # version 1.0.1
 #install.packages("here")
 
-# install Lahman package
-# version 8.0-1
-#install.packages("Lahman")
-
 # install retrosheet package
 # version 1.1.3
 #install.packages("retrosheet")
@@ -58,10 +57,6 @@ library(showtext)
 # version 1.0.1
 library(here)
 
-# load Lahman library for baseball data
-# version 8.0-1
-library(Lahman)
-
 # load retrosheet package for baseball game data
 # version 1.1.3
 library(retrosheet)
@@ -74,6 +69,15 @@ font_add_google(name = "Roboto Slab", family = "roboto-serif")
 # loads font
 showtext_auto()
 ```
+
+# Data
+
+## Location
+
+This analysis uses game-log and play-by-play data from the 2000 MLB season to the 2020 MLB season. Game-logs and play-by-play files were obtained free of charge from are copyrighted by Retrosheet. Interested parties may contact Retrosheet at ["www.retrosheet.org".](https://www.retrosheet.org/). The play-by-play files were accessed using the `parse_retrosheet_pbp()` function from GitHub user ["beanumber"](https://github.com/beanumber/baseball_R/blob/master/scripts/parse_retrosheet_pbp.R), with the process described by Marchi et al. in 'Appendix A' of 'Analyzing Baseball Data with R' (2019c).
+
+Other data files include the fields dataset, which provides the Retrosheet event headers. This can be accessed from from ["the baseball_R GitHub repository maintained by user maxtoki"](https://github.com/maxtoki/baseball_R/blob/master/data/fields.csv).
+
 
 ```{r data function, echo=FALSE, message=FALSE, warning=FALSE}
 # read in the read_gl() function from script directory
@@ -220,6 +224,12 @@ rm(list = c(t1, t2))
 rm(t1, t2, dfr, dfx)
 ```
 
+## Missing Values
+
+Regarding game-log data, four missing values were found in the regulation length games and two missing values were found in extra-inning games due to tie-games creating neither a winner nor loser. These values were removed from their respective datasets leaving 45,283 observations in regulation length games and 4,197 in extra-inning games.
+
+Play-by-play files were also examined for missing values; however, all missing values belonged to event-type variables (e.g. the play on runner on second), so these values were not removed as doing so would create issues within the data.
+
 ```{r missing values, echo=FALSE, message=FALSE, warning=FALSE}
 # read in the check_NA() function from script directory
 source(here::here("script/check_NA.R"))
@@ -284,7 +294,12 @@ reg_count_yr <- count(reg, winning_team, year) %>%
 combined_counts <- bind_rows(regwin_count, extrawin_count)
 ```
 
-```{r, echo=FALSE, fig.align = "center", message=FALSE, warning=FALSE}
+
+## Exploratory Analysis
+
+An exploratory analysis comparing home wins against visitor wins for both extra-inning games and regulation length games for all seasons revealed that over all seasons the home team won more games, for both extra-inning games and regulation games (see Figure 1). Breaking down regulation length games by season also showed that across all seasons the home team won more games than the visiting team (see Figure 2 and Table 1). Additionally, breaking down each extra-inning game by season, generally shows the same pattern of the home team winning more games than the visitor, with the home team winning more games in 15 of the 21 seasons (see Figure 2 and Table 2). However, in the 2000 and 2012 seasons both the home team and visitor won an equal number of extra-inning games at 101 and 96 games apiece respectively (see Figure 2 and Table 2). Meanwhile, the visitor won more extra-inning games than the home team in 2001, 2014, 2019, and 2020 (see Figure 2 and Table 2).      
+
+```{r, echo=FALSE, fig.align = "center", message=FALSE, warning=FALSE, caption="Home vs. Visitor Wins for Extra-Inning Games and Regulation Length Games for MLB Seasons 2000-2020"}
 # generate plot using win counts
 ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
   # generate bar plot, set alpha to .75
@@ -315,45 +330,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
              scales = "free")
 ```
 
-```{r, echo=FALSE, fig.height = 7, fig.width = 9, fig.align = "center", message=FALSE, warning=FALSE}
-# generate new plot using extra inning wins/losses data
-ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
-  # generate bar plot
-  geom_bar(stat = "identity", alpha = .95)+
-  # set plot labels
-  labs(x = "Team Identity (Home or Visitor)",                                                     
-       y = "Total Game Count",
-       fill = "Legend")+
-  # set plot theme to minimal
-  theme_minimal()+
-  # set plot font to roboto-slab-serif
-  theme(text = element_text(family = "roboto-serif"),
-        # remove minor grid lines
-        panel.grid.minor = element_blank(),
-        # remove major x grid lines
-        panel.grid.major.x = element_blank(),
-        # set major y grid lines to blue
-        panel.grid.major.y = element_line(colour = "#E0EDF5"),
-        # set panel spacing to 7mm
-        panel.spacing = unit(7, "mm"),
-        # set legend position to bottom of plot
-        legend.position = "bottom",
-        # set legend orientation to horizontal
-        legend.direction = "horizontal")+
-  # set fill values
-  scale_fill_manual(values = c("#00458f", "#f6aa1c"),
-                    labels = c("Home", "Visitor"))+
-  # set x labels
-  scale_x_discrete(labels = c("Home", "Visitor"))+
-  # set y axis values
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05)))+
-  # facet wrap by year
-  facet_wrap(vars(year),
-             nrow = 5,
-             scales = "free_y")
-```
-
-```{r chart4, echo=FALSE, fig.height = 7, fig.width = 9, fig.align = "center", message=FALSE, warning=FALSE}
+```{r, echo=FALSE, fig.height = 7, fig.width = 9, fig.align = "center", message=FALSE, warning=FALSE, caption="Home vs. Visitor Wins for Regulation Length Games for MLB Seasons 2000-2020"}
 # generate new plot using regulation inning wins/losses data
 ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
   # generate bar plot
@@ -391,24 +368,111 @@ ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
              scales = "free_y")
 ```
 
-```{r extra year table, echo=FALSE}
-t1 <- extra_count_yr %>% 
-  filter(winning_team == "home")
-t2 <- extra_count_yr %>% 
-  filter(winning_team == "visitor")
-t3 <- cbind(t1, t2)
+```{r, echo=FALSE, fig.height = 7, fig.width = 9, fig.align = "center", message=FALSE, warning=FALSE, caption="Home vs. Visitor Wins for Extra-Inning Games for MLB Seasons 2000-2020"}
+# generate new plot using extra inning wins/losses data
+ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
+  # generate bar plot
+  geom_bar(stat = "identity", alpha = .95)+
+  # set plot labels
+  labs(x = "Team Identity (Home or Visitor)",                                                     
+       y = "Total Game Count",
+       fill = "Legend")+
+  # set plot theme to minimal
+  theme_minimal()+
+  # set plot font to roboto-slab-serif
+  theme(text = element_text(family = "roboto-serif"),
+        # remove minor grid lines
+        panel.grid.minor = element_blank(),
+        # remove major x grid lines
+        panel.grid.major.x = element_blank(),
+        # set major y grid lines to blue
+        panel.grid.major.y = element_line(colour = "#E0EDF5"),
+        # set panel spacing to 7mm
+        panel.spacing = unit(7, "mm"),
+        # set legend position to bottom of plot
+        legend.position = "bottom",
+        # set legend orientation to horizontal
+        legend.direction = "horizontal")+
+  # set fill values
+  scale_fill_manual(values = c("#00458f", "#f6aa1c"),
+                    labels = c("Home", "Visitor"))+
+  # set x labels
+  scale_x_discrete(labels = c("Home", "Visitor"))+
+  # set y axis values
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05)))+
+  # facet wrap by year
+  facet_wrap(vars(year),
+             nrow = 5,
+             scales = "free_y")
+```
 
-kableExtra::kbl(t3)
+
+```{r regular table, echo=FALSE}
+# set regular inning wins into placeholders ->
+# to produce tables in PDF
+t1 <- reg_count_yr %>%
+  # filter for only home team wins
+  dplyr::filter(winning_team == "home")%>%
+  # rename columns for table columns
+  dplyr::rename("Winning Team" = winning_team,
+                "Season" = year,
+                "Wins" = count) %>%
+  # move Count column before Season column
+  dplyr::select(Wins, Season)
+
+t2 <- reg_count_yr %>%
+  # filter for only visitor wins
+  dplyr::filter(winning_team == "visitor")%>%
+  # rename columns for table columns
+  dplyr::rename("Winning Team" = winning_team,
+                "Season" = year,
+                "Wins" = count) %>%
+  # select only winning team and count
+  dplyr::select(Wins, Season)
+
+# bind placeholders side by side
+t3 <- cbind(t1, t2)
+# create kable table
+kableExtra::kbl(t3, caption = "Regular Inning Win Count for Home and Visitor by Season") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", full_width = T) %>% 
+  kableExtra::add_header_above(c("Home" = 2, "Visitor" = 2))
+
+# remove placeholders
 rm(t1, t2, t3)
 ```
 
-```{r regular year table, echo=FALSE}
-t1 <- reg_count_yr %>% 
-  filter(winning_team == "home")
-t2 <- reg_count_yr %>% 
-  filter(winning_team == "visitor")
+```{r extra table, echo=FALSE}
+# set extra inning wins into placeholders ->
+# to produce tables in PDF
+t1 <- extra_count_yr %>%
+  # filter for only home team wins
+  dplyr::filter(winning_team == "home") %>%
+  # rename columns for table columns
+  dplyr::rename("Winning Team" = winning_team,
+                "Season" = year,
+                "Wins" = count) %>%
+  # move Count column before Season column
+  dplyr::select(Wins, Season)
+
+t2 <- extra_count_yr %>%
+  # filter for only visitor wins
+  dplyr::filter(winning_team == "visitor") %>%
+  # rename columns for table columns
+  dplyr::rename("Winning Team" = winning_team,
+                "Season" = year,
+                "Wins" = count) %>%
+  # select only winning team and count
+  dplyr::select(Wins, Season)
+
+# bind placeholders side by side
 t3 <- cbind(t1, t2)
-kableExtra::kbl(t3)
+
+# create kable table
+kableExtra::kbl(t3, caption = "Extra Inning Win Count for Home and Visitor by Season") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", full_width = T) %>% 
+  kableExtra::add_header_above(c("Home" = 2, "Visitor" = 2))
+
+# remove placeholders
 rm(t1, t2, t3)
 ```
 
@@ -487,6 +551,29 @@ for(i in 1:length(t1)){
                   year = substr(game_id, 4, 7)))
 }
 ```
+
+```{r total data, echo=F, message=F, warning=F}
+##----
+# CREATE COMBINED DATASET
+# creates a dataset of 3,915,193 observations at 1.9GB
+
+# bind all 20 seasons into one dataset by row
+dftotal <- rbind(df2000, df2001, df2002, df2003, df2004, df2005, df2006, df2007, df2008,
+                 df2009, df2010, df2011, df2012, df2013, df2014, df2015, df2016, df2017,
+                 df2018, df2019, df2020)
+
+# check for NA values in all datasets
+check_NA(dftotal, "dftotal_NA")
+
+# filter for only column numbers containing NA values
+dftotal_NA %>% 
+  select(col) %>% 
+  unique()
+
+# remove dftotal NA locations object
+rm(dftotal_NA)
+```
+
 
 ```{r runs expectancy matrix, echo=F}
 # set RAM access for RStudio to allow for knitting of RMarkdown document
@@ -767,15 +854,6 @@ Runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners
 $$RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$$
 ```{r total data RE24, echo=F, warning=F, message=F}
 ##----
-# CREATE COMBINED DATASET
-# creates a dataset of 3,915,193 observations at 1.9GB
-
-# bind all 20 seasons into one dataset by row
-dftotal <- rbind(df2000, df2001, df2002, df2003, df2004, df2005, df2006, df2007, df2008,
-                 df2009, df2010, df2011, df2012, df2013, df2014, df2015, df2016, df2017,
-                 df2018, df2019, df2020)
-
-##----
 # CREATE HALF-INNING DATA
 
 # assign new data object for half-inning data
@@ -1015,16 +1093,16 @@ runs_simulation <- replicate(20000, sim_half_inning(tmatrix_total, rtotal))
 table(runs_simulation)
 
 # calculate the probability of scoring 1 or more runs
-sum(runs_simulation >= 1) / 20000
+sum(runs_simulation >= 2) / 20000
 ```
 
-```{r three at-bats, echo=F, warning=F, message=F}
+```{r one at-bats, echo=F, warning=F, message=F}
 # multiply probability matrix by itself three times ->
-# finds probabilities of events after three at-bats
-p3 <- pmatrix_total %*% pmatrix_total %*% pmatrix_total
+# finds probabilities of events after one at-bat
+p1 <- pmatrix_total
 
 # pipe multiplied probabilities
-p3 %>%
+p1 <- p1 %>%
   # coerce object as tibble with rownames as state
   tibble::as_tibble(rownames = "state") %>%
   # filter for man on second no outs
@@ -1032,9 +1110,51 @@ p3 %>%
   # gather prob values using new_state as key
   tidyr::gather(key = "new_state", value = "prob", -state) %>%
   # arrange by descending probability
-  dplyr::arrange(desc(prob)) %>%
-  # display tibble
-  head()
+  dplyr::arrange(desc(prob))
+
+kableExtra::kbl(p1, caption = "Probability of Next Base-Out State After One At-Bat for Man on Second no Outs") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
+```
+
+```{r two at-bats, echo=F, warning=F, message=F}
+# multiply probability matrix by itself three times ->
+# finds probabilities of events after two at-bats
+p2 <- pmatrix_total %*% pmatrix_total
+
+# pipe multiplied probabilities
+p2 <- p2 %>%
+  # coerce object as tibble with rownames as state
+  tibble::as_tibble(rownames = "state") %>%
+  # filter for man on second no outs
+  dplyr::filter(state == "010 0") %>%
+  # gather prob values using new_state as key
+  tidyr::gather(key = "new_state", value = "prob", -state) %>%
+  # arrange by descending probability
+  dplyr::arrange(desc(prob))
+
+kableExtra::kbl(p2, caption = "Probability of Next Base-Out State After Two At-Bats for Man on Second no Outs") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
+```
+
+
+```{r three at-bats, echo=F, warning=F, message=F}
+# multiply probability matrix by itself three times ->
+# finds probabilities of events after three at-bats
+p3 <- pmatrix_total %*% pmatrix_total %*% pmatrix_total
+
+# pipe multiplied probabilities
+p3 <- p3 %>%
+  # coerce object as tibble with rownames as state
+  tibble::as_tibble(rownames = "state") %>%
+  # filter for man on second no outs
+  dplyr::filter(state == "010 0") %>%
+  # gather prob values using new_state as key
+  tidyr::gather(key = "new_state", value = "prob", -state) %>%
+  # arrange by descending probability
+  dplyr::arrange(desc(prob))
+
+kableExtra::kbl(p3, caption = "Probability of Next Base-Out State After Three At-Bats for Man on Second no Outs") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
 ```
 
 # References
@@ -1043,9 +1163,11 @@ Gatto, T. (2020, August 14). *NHL bubble, explained: A guide to the hub city rul
 
 Haislop, T. (2020, August 26). *NBA bubble explained: A complete guide to the rules, teams, schedule & more for Orlando games*. Sporting News. https://www.sportingnews.com/us/nba/news/nba-bubble-rules-teams-schedule-orlando/zhap66a9hcwq1khmcex3ggabo
 
-Marchi, M., Albert, J., & Baumer, B. S. (2019). Chapter 5: Value of plays using run expectancy. In, *Analyzing baseball data with R* (2nd ed.), (pp. 111-135). CRC Press
+Marchi, M., Albert, J., & Baumer, B. S. (2019a). Chapter 5: Value of plays using run expectancy. In, *Analyzing baseball data with R* (2nd ed.), (pp. 111-135). CRC Press
 
-Marchi, M., Albert, J., & Baumer, B. S. (2019). Chapter 9: Simulation. In, *Analyzing baseball data with R* (2nd ed.), (pp. 201-226). CRC Press 
+Marchi, M., Albert, J., & Baumer, B. S. (2019b). Chapter 9: Simulation. In, *Analyzing baseball data with R* (2nd ed.), (pp. 201-226). CRC Press
+
+Marchi, M., Albert, J., & Baumer, B. S. (2019c). Appendix A: Retrosheet files reference. In, *Analyzing baseball data with R* (2nd ed.), (pp. 293-301). CRC Press
 
 McNamara, A. (2020, July 24). *Toronto Blue Jays to play majority of 2020 home games in Buffalo*. CBS News. https://www.cbsnews.com/news/toronto-blue-jays-home-games-buffalo-2020-season/
 
