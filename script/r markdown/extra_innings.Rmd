@@ -228,7 +228,7 @@ rm(t1, t2, dfr, dfx)
 
 Regarding game-log data, four missing values were found in the regulation length games and two missing values were found in extra-inning games due to tie-games creating neither a winner nor loser. These values were removed from their respective datasets leaving 45,283 observations in regulation length games and 4,197 in extra-inning games.
 
-Play-by-play files were also examined for missing values; however, all missing values belonged to event-type variables (e.g. the play on runner on second), so these values were not removed as doing so would create issues within the data.
+Play-by-play files were also examined for missing values; however, all missing values belonged to event-type variables (e.g. the play on runner on second), so these values were not removed as doing so would create issues within the data regarding analysis.
 
 ```{r missing values, echo=FALSE, message=FALSE, warning=FALSE}
 # read in the check_NA() function from script directory
@@ -297,9 +297,9 @@ combined_counts <- bind_rows(regwin_count, extrawin_count)
 
 ## Exploratory Analysis
 
-An exploratory analysis comparing home wins against visitor wins for both extra-inning games and regulation length games for all seasons revealed that over all seasons the home team won more games, for both extra-inning games and regulation games (see Figure 1). Breaking down regulation length games by season also showed that across all seasons the home team won more games than the visiting team (see Figure 2 and Table 1). Additionally, breaking down each extra-inning game by season, generally shows the same pattern of the home team winning more games than the visitor, with the home team winning more games in 15 of the 21 seasons (see Figure 2 and Table 2). However, in the 2000 and 2012 seasons both the home team and visitor won an equal number of extra-inning games at 101 and 96 games apiece respectively (see Figure 2 and Table 2). Meanwhile, the visitor won more extra-inning games than the home team in 2001, 2014, 2019, and 2020 (see Figure 2 and Table 2).      
+An exploratory analysis comparing home wins against visitor wins for both extra-inning games and regulation length games for all seasons revealed that over all seasons the home team won more games, for both extra-inning games and regulation games (see Figure 1). Breaking down regulation length games by season also showed that across all seasons the home team won more games than the visiting team (see Figure 2 and Table 1). Additionally, breaking down each extra-inning game by season, generally shows the same pattern of the home team winning more games than the visitor, with the home team winning more games in 15 of the 21 seasons (see Figure 2 and Table 2). However, in the 2000 and 2012 seasons both the home team and visitor won an equal number of extra-inning games at 101 and 96 games apiece respectively (see Figure 2 and Table 2). Meanwhile, the visitor won more extra-inning games than the home team in 2001, 2014, 2019, and 2020 (see Figure 2 and Table 2).
 
-```{r, echo=FALSE, fig.align = "center", message=FALSE, warning=FALSE, caption="Home vs. Visitor Wins for Extra-Inning Games and Regulation Length Games for MLB Seasons 2000-2020"}
+```{r, echo=FALSE, fig.align = "center", message=FALSE, warning=FALSE, fig.cap="Home vs. Visitor Wins for Extra-Inning Games and Regulation Length Games for MLB Seasons 2000-2020"}
 # generate plot using win counts
 ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
   # generate bar plot, set alpha to .75
@@ -330,7 +330,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
              scales = "free")
 ```
 
-```{r, echo=FALSE, fig.height = 7, fig.width = 9, fig.align = "center", message=FALSE, warning=FALSE, caption="Home vs. Visitor Wins for Regulation Length Games for MLB Seasons 2000-2020"}
+```{r, echo=FALSE, fig.height = 7, fig.width = 9, fig.align = "center", message=FALSE, warning=FALSE, fig.cap="Home vs. Visitor Wins for Regulation Length Games for MLB Seasons 2000-2020"}
 # generate new plot using regulation inning wins/losses data
 ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
   # generate bar plot
@@ -368,7 +368,7 @@ ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
              scales = "free_y")
 ```
 
-```{r, echo=FALSE, fig.height = 7, fig.width = 9, fig.align = "center", message=FALSE, warning=FALSE, caption="Home vs. Visitor Wins for Extra-Inning Games for MLB Seasons 2000-2020"}
+```{r, echo=FALSE, fig.height = 7, fig.width = 9, fig.align = "center", message=FALSE, warning=FALSE, fig.cap="Home vs. Visitor Wins for Extra-Inning Games for MLB Seasons 2000-2020"}
 # generate new plot using extra inning wins/losses data
 ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
   # generate bar plot
@@ -405,7 +405,6 @@ ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
              nrow = 5,
              scales = "free_y")
 ```
-
 
 ```{r regular table, echo=FALSE}
 # set regular inning wins into placeholders ->
@@ -563,17 +562,16 @@ dftotal <- rbind(df2000, df2001, df2002, df2003, df2004, df2005, df2006, df2007,
                  df2018, df2019, df2020)
 
 # check for NA values in all datasets
-check_NA(dftotal, "dftotal_NA")
+#check_NA(dftotal, "dftotal_NA")
 
 # filter for only column numbers containing NA values
-dftotal_NA %>% 
-  select(col) %>% 
-  unique()
+#dftotal_NA %>% 
+#  select(col) %>% 
+#  unique()
 
 # remove dftotal NA locations object
-rm(dftotal_NA)
+#rm(dftotal_NA)
 ```
-
 
 ```{r runs expectancy matrix, echo=F}
 # set RAM access for RStudio to allow for knitting of RMarkdown document
@@ -608,22 +606,29 @@ for(i in 1:length(t2)){
   # join the object at the index location in t2 with object in t3 ->
   # join by half_inning column
   assign(paste0(t2[i], "_roi"), dplyr::inner_join(get(t2[i]), get(paste0(t2[i], "_hi")), by = "half_inning") %>%
-           dplyr::mutate(runs_roi = max_runs - runs) %>% 
            # mutate new column runs in the remainder of inning as ->
            # maximum runs - runs
+           dplyr::mutate(runs_roi = max_runs - runs) %>%
+           # mutate new column to hold binary for yes or no if player on base
            dplyr::mutate(bases = paste(ifelse(base1_run_id > '', 1, 0),
                                 ifelse(base2_run_id > '', 1, 0),
                                 ifelse(base3_run_id > '', 1, 0), sep = ""),
+                  # create new column to hold current base-out state
                   state = paste(bases, outs_ct),
+                  # create new columns to hold destinations for runners
                   nrunner1 = as.numeric(run1_dest_id == 1 | bat_dest_id == 1),
                   nrunner2 = as.numeric(run1_dest_id == 2 | run2_dest_id == 2 |
                                           bat_dest_id == 2),
                   nrunner3 = as.numeric(run1_dest_id == 3 | run2_dest_id == 3 |
                                           run3_dest_id == 3 | bat_dest_id == 3),
+                  # create new column to hold number of outs
                   nouts = outs_ct + event_outs_ct,
+                  # create new column to hold new base state
                   new_bases = paste(nrunner1, nrunner2,
                                     nrunner3, sep = ""),
-                  new_state = paste(new_bases, nouts)) %>% 
+                  # create new column to hold new base-out state
+                  new_state = paste(new_bases, nouts)) %>%
+           # filter for only when state does not equal new state or runs are above 0
            dplyr::filter((state != new_state) | (runs_scored > 0)))
 }
 
@@ -733,7 +738,7 @@ for(i in 1:length(t2)){
 rm(list = t3)
 
 # for the length of t2
-# paste _roi to the end of the index object
+# paste _runs to the end of the index object
 for(i in 1:length(t2)){
   t3[i] =  paste0(t2[i], "_runs")
 }
@@ -741,13 +746,15 @@ for(i in 1:length(t2)){
 rm(list = t3)
 
 # for the length of t2
-# paste _roi to the end of the index object
+# paste _ematrix to the end of the index object
 for(i in 1:length(t2)){
   t3[i] =  paste0(t2[i], "_ematrix")
 }
 
+# remove items in t3
 rm(list = t3)
 
+# remove t3
 rm(t3)
 ```
 
@@ -773,18 +780,26 @@ for(i in 1:length(t2)){
            dplyr::mutate(bases = paste(ifelse(base1_run_id > '', 1, 0),
                                 ifelse(base2_run_id > '', 1, 0),
                                 ifelse(base3_run_id > '', 1, 0), sep = ""),
+                  # create new column to hold base-out state
                   state = paste(bases, outs_ct),
+                  # create new columns to hold number of runners from runner destinations
                   nrunner1 = as.numeric(run1_dest_id == 1 | bat_dest_id == 1),
                   nrunner2 = as.numeric(run1_dest_id == 2 | run2_dest_id == 2 |
                                           bat_dest_id == 2),
                   nrunner3 = as.numeric(run1_dest_id == 3 | run2_dest_id == 3 |
                                           run3_dest_id == 3 | bat_dest_id == 3),
+                  # create new column to hold new outs count
                   nouts = outs_ct + event_outs_ct,
+                  # create new column to hold new base state
                   new_bases = paste(nrunner1, nrunner2,
                                     nrunner3, sep = ""),
-                  new_state = paste(new_bases, nouts)) %>% 
+                  # create new column to hold new base-out state
+                  new_state = paste(new_bases, nouts)) %>%
+           # filter for when state does not equal new state or runs above 0
            dplyr::filter((state != new_state) | (runs_scored > 0)) %>% 
-           dplyr::filter(outs_inning == 3, bat_event_fl == T) %>% 
+           # filter for when for only complete innings and for only batter events
+           dplyr::filter(outs_inning == 3, bat_event_fl == T) %>%
+           # create new state column to replace 3rd out state
            dplyr::mutate(new_state = gsub("[0-1]{3} 3", "3", new_state)))
 }
 
@@ -796,10 +811,13 @@ for(i in 1:length(t2)){
 
 # create full transition matrices
 for(i in 1:length(t2)){
-  assign(paste0(t2[i], "_tmatrix"), 
+  # assign new object with suffix tmatrix
+  assign(paste0(t2[i], "_tmatrix"),
+         # select only state and new_state columns
          dplyr::select(get(paste0(t2[i], "_prep")),
                        state,
                        new_state) %>% 
+           # assign as table
            table())
 }
 
@@ -849,9 +867,10 @@ rm(list = t3)
 rm(t3)
 ```
 
-Runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners}$ and outs $O$ before $(b)$ the event plus one and the number of runners $N_{runners}$ plus outs $O$ after $(a)$ after the event.
+# Analysis
 
-$$RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$$
+To begin, a run expectancy matrix was generated to calculate the average number of runs scored from the different base-out states. In baseball, there are three possible states of outs before an inning is over, e.g., zero, one, or two outs, and each base (i.e., first, second, and third) can either be in a state of being occupied or not occupied. Thereby giving 24 possible base-out states (8 base states x 3 out states = 24 base-out states). This was calculated for each MLB season from 2000 to 2020, as well as for the seasons combined.
+
 ```{r total data RE24, echo=F, warning=F, message=F}
 ##----
 # CREATE HALF-INNING DATA
@@ -1023,6 +1042,10 @@ count_runners_out <- function(.state){
 }
 ```
 
+Runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners}$ and outs $O$ before $(b)$ the event plus one and the number of runners $N_{runners}$ plus outs $O$ after $(a)$ after the event.
+
+$$RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$$
+
 ```{r runners out, echo=F}
 # for the length of t2
 for(i in 1:length(t2)){
@@ -1058,25 +1081,44 @@ for(i in 1:length(t2)){
 ```
 
 ```{r total runners out, echo=F, message=F, warning=F}
+# assign new object runners_out using sapply to apply ->
+# count_runners_out function to tmatrix ->
+# dropping index 25
 runners_out <- sapply(row.names(tmatrix_total),
                       count_runners_out)[-25]
 
+# assign new object rtotal to calculate runs scored formula
 rtotal <- outer(runners_out + 1, runners_out, FUN = "-")
+# assign names in rtotal using names in tmatrix
 names(rtotal) <- names(tmatrix_total)[-25]
+# bind final column of 0s to rtotal
 rtotal <- cbind(rtotal, rep(0, 24))
 ```
 
 ```{r simulate function, echo=F}
+# assign new function to simulate runs in half inning ->
+# takes tmatrix and rmatrix as arguments ->
+# set start to begin at 1
 sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
+  # assign start number to s
   s <- start
+  # set path to NULL
   path <- NULL
+  # set runs to start at 0
   runs <- 0
+  # while s is less than 25
   while(s < 25){
-    s.new <- sample(1:25, size = 1, prob = .tmatrix[s, ])
-    path <- c(path, s.new)
-    runs <- runs + .rmatrix[s, s.new]
-    s <- s.new
+    # assign to s_new from 1 through 25 of size 1 ->
+    # with probability from given tmatrix at position s
+    s_new <- sample(1:25, size = 1, prob = .tmatrix[s, ])
+    # assign path as path and sample 
+    path <- c(path, s_new)
+    # assign runs as runs + run matrix at position s and s_new
+    runs <- runs + .rmatrix[s, s_new]
+    # assign s as s_new
+    s <- s_new
   }
+  # return runs
   runs
 }
 ```
@@ -1090,10 +1132,10 @@ set.seed(515)
 runs_simulation <- replicate(20000, sim_half_inning(tmatrix_total, rtotal))
 
 # assign simulations as a table
-table(runs_simulation)
+runs_table <- table(runs_simulation)
 
 # calculate the probability of scoring 1 or more runs
-sum(runs_simulation >= 2) / 20000
+prob_two_or_more <- sum(runs_simulation >= 2) / 20000
 ```
 
 ```{r one at-bats, echo=F, warning=F, message=F}
