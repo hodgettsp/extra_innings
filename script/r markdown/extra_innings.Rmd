@@ -197,31 +197,27 @@ t2 <- ls(pattern = "_x")
 ```
 
 ```{r bind datasets, echo=FALSE, message=FALSE, warning=FALSE}
-# create a list of all dataframes
-dfx <- grepl("_x", names(.GlobalEnv))
-# run twice because it changes the number of items in the global environment-> 
-# creating issues for the next line
-dfx <- grepl("_x", names(.GlobalEnv))
-names(dfx) <- names(.GlobalEnv)
+# create a list of all regulation dataframes
+dfr <- mget(t1)
 
-# repeat above steps for regular inning games
-dfr <- grepl("_r", names(.GlobalEnv))
-dfr <- grepl("_r", names(.GlobalEnv))
-names(dfr) <- names(.GlobalEnv)
+# create a list of all extras dataframes
+dfx <- mget(t2)
+
 
 # bind all extra inning dataframes using the created list
-extras <- do.call(rbind, mget(names(dfx)[dfx]))
+extras <- dplyr::bind_rows(dfx)
 
 # bind all regular inning dataframes using the created list
-reg <- do.call(rbind, mget(names(dfr)[dfr]))
+reg <- dplyr::bind_rows(dfr)
 ```
 
 ```{r remove data objects, echo=FALSE, warning=FALSE, message=FALSE}
 # remove the created game log data objects
 rm(list = c(t1, t2))
 # remove the temporary vectors ->
-# and remove dfr and dfx logical vectors
-rm(t1, t2, dfr, dfx)
+# remove dfr and dfx logical vectors ->
+# and remove game log functions
+rm(t1, t2, dfr, dfx, prepare_gl, read_gl)
 ```
 
 ## Missing Values
@@ -869,7 +865,7 @@ rm(t3)
 
 # Analysis
 
-To begin, a run expectancy matrix was generated to calculate the average number of runs scored from the different base-out states. In baseball, there are three possible states of outs before an inning is over, e.g., zero, one, or two outs, and each base (i.e., first, second, and third) can either be in a state of being occupied or not occupied. Thereby giving 24 possible base-out states (8 base states x 3 out states = 24 base-out states). This was calculated for each MLB season from 2000 to 2020, as well as for the seasons combined.
+To begin, a run expectancy matrix was generated to calculate the average number of runs scored from the different base-out states. In baseball, there are three possible states of outs before an inning is over, e.g., zero, one, or two outs, and each base (i.e., first, second, and third) can either be in a state of being occupied or not occupied. Thereby giving 24 possible base-out states (8 base states x 3 out states = 24 base-out states). This was calculated for each MLB season from 2000 to 2020, as well as for the seasons combined. As can be seen
 
 ```{r total data RE24, echo=F, warning=F, message=F}
 ##----
@@ -940,13 +936,15 @@ dftotal_prob1 <- dftotal_joined %>%
 # BUILD ESTIMATION MATRIX
 
 # reassign data object
-dftotal_joined <- dftotal_joined %>%
+dftotal_summarise <- dftotal_joined %>%
   # filter for only complete innings
   dplyr::filter(outs_inning == 3) %>%
   # group by state
   dplyr::group_by(state) %>%
   # summarise to calculate the mean/average runs given a state and outs
-  dplyr::summarise(avg = mean(runs_roi)) %>%
+  dplyr::summarise(`mean` = mean(runs_roi),
+                   variance = var(runs_roi),
+                   `sd` = sd(runs_roi)) %>%
   # create new column to hold outs count
   dplyr::mutate(outs = substr(state, 5, 5)) %>%
   # arrange by outs count
@@ -958,11 +956,14 @@ dftotal_joined <- dftotal_joined %>%
 
 # assign new object as an 8X3 matrix ->
 # round values to 2nd decimal place
-re24total <- matrix(round(dftotal_joined$avg, 2), 8, 3) %>%
+re24total <- matrix(round(dftotal_summarise$mean, 2), 8, 3) %>%
   # set column names to given vector values
   magrittr::set_colnames(c("0 outs", "1 out", "2 outs")) %>%
   # set row names to given vector values
   magrittr::set_rownames(c("000", "001", "010", "011", "100", "101", "110", "111"))
+
+kableExtra::kbl(re24total, caption = "Runs Expectancy Matrix for All Seasons (2000-2020) Combined") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
 ```
 
 ```{r total data simulation, echo=F, message=F, warning=F}
