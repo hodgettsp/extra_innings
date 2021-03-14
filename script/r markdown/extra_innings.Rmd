@@ -1005,7 +1005,7 @@ kableExtra::kbl(dftotal_prob1, caption = "Probability of Scoring at least One Ru
 
 ## State Transitions
 
-A half-inning of baseball lasts until a third out is made and up to that point the game moves between the various possible base-out states. For example, a regulation half-inning could progress from the first batter as follows: no runners and no outs (000 0), to a runner on first with no outs (100 0), to no runners and two outs (000 2), to runner on second and two outs (010 2), to finally three outs and the end of the half-inning. Using the current base-out and the subsequent new base-out state, a transition matrix was produced to show the frequency at which one state followed another.
+A half-inning of baseball lasts until a third out is made and up to that point the game moves between the various possible base-out states. For example, a regulation half-inning could progress from the first batter as follows: no runners and no outs (000 0), to a runner on first with no outs (100 0), to no runners and two outs (000 2), to runner on second and two outs (010 2), to finally three outs and the end of the half-inning. Using the current base-out and the subsequent new base-out state, a transition table was produced to calculate the frequency at which one state followed another. From this transition table a proportional table was then produced to view the proportion at which one state moved to another.
 
 ```{r total data simulation, echo=F, message=F, warning=F}
 ##----
@@ -1058,12 +1058,17 @@ tmatrix_total <- dftotal_joined %>%
 
 
 ##----
-# GENERATE PROBAILITY TABLE
+# GENERATE PROP TABLE
 
 # create probability table object from transition matrix
 pmatrix_total <- prop.table(tmatrix_total, 1)
 # bind final column for 3 out state
 pmatrix_total <- rbind(pmatrix_total, c(rep(0, 24), 1))
+```
+
+```{r pmatrix, echo=F, message=F, warning=F}
+kableExtra::kbl(pmatrix_total, caption = "Proportional Matrix for Transitions Between Base-Out States") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = HOLD_position)
 ```
 
 ```{r count function, echo=FALSE, warning=F, message=F}
