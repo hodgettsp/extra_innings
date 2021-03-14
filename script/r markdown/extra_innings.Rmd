@@ -65,7 +65,7 @@ library(retrosheet)
 ```{r font, echo=FALSE, message=FALSE, warning=FALSE}
 # add in fonts from Google fonts using showtext package
 # font_add_google function calls the font from Google fonts
-font_add_google(name = "Roboto Slab", family = "roboto-serif")
+font_add_google(name = "Jost", family = "jost-sans-serif")
 # loads font
 showtext_auto()
 ```
@@ -305,7 +305,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
   # set plot theme to minimal
   theme_minimal()+
   # set plot font to roboto-slab-serif
-  theme(text = element_text(family = "roboto-serif"),
+  theme(text = element_text(family = "jost-sans-serif"),
         # remove minor grid lines
         panel.grid.minor = element_blank(),
         # remove major x grid lines
@@ -336,7 +336,7 @@ ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
   # set plot theme to minimal
   theme_minimal()+
   # set plot font to roboto-slab-serif
-  theme(text = element_text(family = "roboto-serif"),
+  theme(text = element_text(family = "jost-sans-serif"),
         # remove minor grid lines
         panel.grid.minor = element_blank(),
         # remove major x grid lines
@@ -374,7 +374,7 @@ ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
   # set plot theme to minimal
   theme_minimal()+
   # set plot font to roboto-slab-serif
-  theme(text = element_text(family = "roboto-serif"),
+  theme(text = element_text(family = "jost-sans-serif"),
         # remove minor grid lines
         panel.grid.minor = element_blank(),
         # remove major x grid lines
@@ -1060,7 +1060,7 @@ tmatrix_total <- dftotal_joined %>%
 ##----
 # GENERATE PROP TABLE
 
-# create probability table object from transition matrix
+# create prop table object from transition matrix
 pmatrix_total <- prop.table(tmatrix_total, 1)
 # bind final column for 3 out state
 pmatrix_total <- rbind(pmatrix_total, c(rep(0, 24), 1))
