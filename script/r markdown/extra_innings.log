@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.12.0 (TeX Live 2020/W32TeX)  (format=lualatex 2021.3.10)  13 MAR 2021 14:13
+This is LuaHBTeX, Version 1.12.0 (TeX Live 2020/W32TeX)  (format=lualatex 2021.3.10)  14 MAR 2021 16:03
  restricted system commands enabled.
 **extra_innings.tex
 (./extra_innings.tex
@@ -1090,7 +1090,7 @@ LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
 
 {c:/Users/phodg/AppData/Roaming/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex
 .map}]
-<extra_innings_files/figure-latex/unnamed-chunk-1-1.pdf, id=53, 469.755pt x 325.
+<extra_innings_files/figure-latex/unnamed-chunk-1-1.pdf, id=57, 469.755pt x 325.
 215pt>
 File: extra_innings_files/figure-latex/unnamed-chunk-1-1.pdf Graphic file (type 
 pdf)
@@ -1098,7 +1098,7 @@ pdf)
 Package luatex.def Info: extra_innings_files/figure-latex/unnamed-chunk-1-1.pdf 
  used on input line 194.
 (luatex.def)             Requested size: 469.75386pt x 325.2142pt.
-<extra_innings_files/figure-latex/unnamed-chunk-2-1.pdf, id=54, 650.43pt x 505.8
+<extra_innings_files/figure-latex/unnamed-chunk-2-1.pdf, id=58, 650.43pt x 505.8
 9pt>
 File: extra_innings_files/figure-latex/unnamed-chunk-2-1.pdf Graphic file (type 
 pdf)
@@ -1106,7 +1106,7 @@ pdf)
 Package luatex.def Info: extra_innings_files/figure-latex/unnamed-chunk-2-1.pdf 
  used on input line 203.
 (luatex.def)             Requested size: 469.76817pt x 365.37524pt.
-<extra_innings_files/figure-latex/unnamed-chunk-3-1.pdf, id=55, 650.43pt x 505.8
+<extra_innings_files/figure-latex/unnamed-chunk-3-1.pdf, id=59, 650.43pt x 505.8
 9pt>
 File: extra_innings_files/figure-latex/unnamed-chunk-3-1.pdf Graphic file (type 
 pdf)
@@ -1129,38 +1129,46 @@ warning  (pdf backend): ignoring duplicate destination with the name 'table.3'
 ] [8
 warning  (pdf backend): ignoring duplicate destination with the name 'table.4'
 ]
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
+Overfull \hbox (945.0748pt too wide) in paragraph at lines 552--607
+ [][] 
+ []
 
 [9
 warning  (pdf backend): ignoring duplicate destination with the name 'table.5'
-] [10
+]
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[10
 warning  (pdf backend): ignoring duplicate destination with the name 'table.6'
 ] [11
 warning  (pdf backend): ignoring duplicate destination with the name 'table.7'
 ] [12
 warning  (pdf backend): ignoring duplicate destination with the name 'table.8'
+] [13
+warning  (pdf backend): ignoring duplicate destination with the name 'table.9'
 ] (./extra_innings.aux)
 Package rerunfilecheck Info: File `extra_innings.out' has not changed.
-(rerunfilecheck)             Checksum: D5C035906AFB5D0AA299DFF9CCB8C2E2;891.
+(rerunfilecheck)             Checksum: 2962A90166271D0C8B369D462061245A;1033.
 )
 
 Here is how much of LuaTeX's memory you used:
- 18665 strings out of 478583
- 100000,953878 words of node,token memory allocated
+ 18672 strings out of 478583
+ 305227,953878 words of node,token memory allocated
  565 words of node memory still in use:
    6 hlist, 2 vlist, 2 rule, 2 glue, 4 kern, 1 glyph, 11 attribute, 61 glue_spec
 , 11 attribute_list, 1 write, 1 user_defined, 2 pdf_action nodes
-   avail lists: 2:2196,3:197,4:30,5:385,6:24,7:7637,8:135,9:1411,10:16,11:536
- 37761 multiletter control sequences out of 65536+600000
- 73 fonts using 15386119 bytes
- 98i,9n,122p,291b,440s stack positions out of 5000i,500n,10000p,200000b,200000s
+   avail lists: 2:5381,3:197,4:1380,5:2927,6:23,7:24689,8:135,9:5846,10:16,11:53
+6
+ 37764 multiletter control sequences out of 65536+600000
+ 73 fonts using 15386271 bytes
+ 98i,9n,122p,859b,388s stack positions out of 5000i,500n,10000p,200000b,200000s
 <c:/Users/phodg/AppData/Roaming/TinyTeX/texmf-dist/fonts/opentype/public/lm/lmro
 man10-italic.otf><c:/Users/phodg/AppData/Roaming/TinyTeX/texmf-dist/fonts/openty
 pe/public/lm-math/latinmodern-math.otf><c:/Users/phodg/AppData/Roaming/TinyTeX/t
@@ -1174,10 +1182,10 @@ TinyTeX/texmf-dist/fonts/opentype/public/lm/lmroman9-bold.otf><c:/Users/phodg/Ap
 pData/Roaming/TinyTeX/texmf-dist/fonts/opentype/public/lm/lmroman12-regular.otf>
 <c:/Users/phodg/AppData/Roaming/TinyTeX/texmf-dist/fonts/opentype/public/lm/lmro
 man17-regular.otf>
-Output written on extra_innings.pdf (12 pages, 815732 bytes).
+Output written on extra_innings.pdf (13 pages, 1197594 bytes).
 
-PDF statistics: 214 PDF objects out of 1000 (max. 8388607)
- 162 compressed objects within 2 object streams
- 40 named destinations out of 1000 (max. 131072)
- 65 words of extra memory for PDF output out of 10000 (max. 100000000)
+PDF statistics: 224 PDF objects out of 1000 (max. 8388607)
+ 171 compressed objects within 2 object streams
+ 44 named destinations out of 1000 (max. 131072)
+ 73 words of extra memory for PDF output out of 10000 (max. 100000000)
 

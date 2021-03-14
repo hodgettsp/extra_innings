@@ -297,7 +297,7 @@ An exploratory analysis comparing home wins against visitor wins for both extra-
 # generate plot using win counts
 ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
   # generate bar plot, set alpha to .75
-  geom_bar(stat = "identity", alpha = .95)+
+  geom_bar(stat = "identity", alpha = .75)+
   # set plot labels
   labs(x = "Team Identity (Home or Visitor)",                                                     
        y = "Total Game Count",
@@ -315,7 +315,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
         # set panel spacing to 10mm
         panel.spacing = unit(10, "mm"))+
   # set colour values
-  scale_fill_manual(values = c("#00458f", "#f6aa1c"),
+  scale_fill_manual(values = c("#00a9e0", "#f5003d"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -328,7 +328,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
 # generate new plot using regulation inning wins/losses data
 ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
   # generate bar plot
-  geom_bar(stat = "identity", alpha = .95)+
+  geom_bar(stat = "identity", alpha = .75)+
   # set plot labels
   labs(x = "Team Identity (Home or Visitor)",                                                     
        y = "Total Game Count",
@@ -350,7 +350,7 @@ ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
         # set legend orientation to horizontal
         legend.direction = "horizontal")+
   # set fill values
-  scale_fill_manual(values = c("#00458f", "#f6aa1c"),
+  scale_fill_manual(values = c("#00a9e0", "#f5003d"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -366,7 +366,7 @@ ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
 # generate new plot using extra inning wins/losses data
 ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
   # generate bar plot
-  geom_bar(stat = "identity", alpha = .95)+
+  geom_bar(stat = "identity", alpha = .75)+
   # set plot labels
   labs(x = "Team Identity (Home or Visitor)",                                                     
        y = "Total Game Count",
@@ -388,7 +388,7 @@ ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
         # set legend orientation to horizontal
         legend.direction = "horizontal")+
   # set fill values
-  scale_fill_manual(values = c("#00458f", "#f6aa1c"),
+  scale_fill_manual(values = c("#00a9e0", "#f5003d"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -999,13 +999,15 @@ dftotal_summarise %>%
 However, while these tables show the average expected runs from a given base-out state, there is also the question as to the probability of a run actually scoring given a base-out state. Table 5 shows the mean of value of at least one run scored given each base-out state. Looking at this table, the base-out state with the greatest probability of one or more runs scoring is the bases loaded and no outs (111 0) with a probability of 0.86, and the lowest probability of one or more runs scoring is no one on and two outs (000 2) with a probability of 0.07. Looking to the base-out state of a runner on second and no outs (010 0), or the starting state for each extra-inning game in the 2020 MLB season, it can be seen that at least one run scoring given that state has a probability of 0.62. This is compared to the standard state of beginning of an inning with no runners and no outs (000 0), which has a probability of 0.28 for at least one or more runs scoring from that state.
 
 ```{r RE run prob, echo=F, message=F, warning=F}
-kableExtra::kbl(dftotal_prob1, caption = "Probability of Scoring at least One Run from a Given Bae-Out State") %>% 
+kableExtra::kbl(dftotal_prob1, caption = "Probability of Scoring at least One Run from a Given Base-Out State") %>% 
   kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
 ```
 
 ## State Transitions
 
-A half-inning of baseball lasts until a third out is made and up to that point the game moves between the various possible base-out states. For example, a regulation half-inning could progress from the first batter as follows: no runners and no outs (000 0), to a runner on first with no outs (100 0), to no runners and two outs (000 2), to runner on second and two outs (010 2), to finally three outs and the end of the half-inning. Using the current base-out and the subsequent new base-out state, a transition table was produced to calculate the frequency at which one state followed another. From this transition table a proportional table was then produced to view the proportion at which one state moved to another.
+A half-inning of baseball lasts until a third out is made and up to that point the game moves between the various possible base-out states. For example, a regulation half-inning could progress from the first batter as follows: no runners and no outs (000 0), to a runner on first with no outs (100 0), to no runners and two outs (000 2), to runner on second and two outs (010 2), to finally three outs and the end of the half-inning. Using the current base-out and the subsequent new base-out state, a transition table was produced to calculate the frequency at which one state followed another. From this transition table a proportional table was then produced to view the proportion at which one state moved to another. This table is displayed in Table 5. To read this table, each row and column represents a state, with the values in each cell representing the proportion of moving from the base-out state of that row to the corresponding column base-out state. For example, the first row of the table represents the starting state of a half-inning with no runners and no outs (000 0). Looking along this row, the next most likely state is no runners and one out (000 1) at 0.67. Following that, the next most likely state to follow no runners and no outs is runner on first and no outs (100 0) at 0.24. Lastly, any cell with a value of 0 represents a base-out state for which it is not possible for the base-out state of that row to transition. For example, it would not be possible to transition from no runners no outs (000 0) to runner on third and one out (001 1). Looking at the above example, the probability of those series of events would be 0.0009 or 0.24 x 0.12 x 0.05 x 0.63.
+
+To specifically examine the transition states following runner on second and no outs, Table 6 was created to filter for only the transition proportions following that state. Looking at this table it can be seen that the next most likely state following a runner on second and no outs is a runner on second with one out (010 1). This state is followed in likelihood by a runner on third with one out (001 1).
 
 ```{r total data simulation, echo=F, message=F, warning=F}
 ##----
@@ -1061,14 +1063,34 @@ tmatrix_total <- dftotal_joined %>%
 # GENERATE PROP TABLE
 
 # create prop table object from transition matrix
-pmatrix_total <- prop.table(tmatrix_total, 1)
+pmatrix_total <- round(prop.table(tmatrix_total, 1), 4)
 # bind final column for 3 out state
 pmatrix_total <- rbind(pmatrix_total, c(rep(0, 24), 1))
 ```
 
-```{r pmatrix, echo=F, message=F, warning=F}
+```{r ptable, echo=F, message=FALSE, warning=FALSE}
 kableExtra::kbl(pmatrix_total, caption = "Proportional Matrix for Transitions Between Base-Out States") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = HOLD_position)
+  kableExtra::kable_styling(position = "center", latex_options = c("HOLD_position", "striped", "scaled_down"))
+```
+
+```{r one at-bats, echo=F, warning=F, message=F}
+# multiply probability matrix by itself three times ->
+# finds probabilities of events after one at-bat
+p1 <- pmatrix_total
+
+# pipe multiplied probabilities
+p1 <- p1 %>%
+  # coerce object as tibble with rownames as state
+  tibble::as_tibble(rownames = "state") %>%
+  # filter for man on second no outs
+  dplyr::filter(state == "010 0") %>%
+  # gather prob values using new_state as key
+  tidyr::gather(key = "new_state", value = "prob", -state) %>%
+  # arrange by descending probability
+  dplyr::arrange(desc(prob))
+
+kableExtra::kbl(p1, caption = "Probability of Next Base-Out State After One At-Bat for Man on Second no Outs") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
 ```
 
 ```{r count function, echo=FALSE, warning=F, message=F}
@@ -1183,26 +1205,6 @@ runs_table <- table(runs_simulation)
 
 # calculate the probability of scoring 1 or more runs
 prob_two_or_more <- sum(runs_simulation >= 2) / 20000
-```
-
-```{r one at-bats, echo=F, warning=F, message=F}
-# multiply probability matrix by itself three times ->
-# finds probabilities of events after one at-bat
-p1 <- pmatrix_total
-
-# pipe multiplied probabilities
-p1 <- p1 %>%
-  # coerce object as tibble with rownames as state
-  tibble::as_tibble(rownames = "state") %>%
-  # filter for man on second no outs
-  dplyr::filter(state == "010 0") %>%
-  # gather prob values using new_state as key
-  tidyr::gather(key = "new_state", value = "prob", -state) %>%
-  # arrange by descending probability
-  dplyr::arrange(desc(prob))
-
-kableExtra::kbl(p1, caption = "Probability of Next Base-Out State After One At-Bat for Man on Second no Outs") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
 ```
 
 ```{r two at-bats, echo=F, warning=F, message=F}
