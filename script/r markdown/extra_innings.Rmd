@@ -78,7 +78,6 @@ This analysis uses game-log and play-by-play data from the 2000 MLB season to th
 
 Other data files include the fields dataset, which provides the Retrosheet event headers. This can be accessed from from ["the baseball_R GitHub repository maintained by user maxtoki"](https://github.com/maxtoki/baseball_R/blob/master/data/fields.csv).
 
-
 ```{r data function, echo=FALSE, message=FALSE, warning=FALSE}
 # read in the read_gl() function from script directory
 source(here::here("script/read_gl.R"))
@@ -290,7 +289,6 @@ reg_count_yr <- count(reg, winning_team, year) %>%
 combined_counts <- bind_rows(regwin_count, extrawin_count)
 ```
 
-
 ## Exploratory Analysis
 
 An exploratory analysis comparing home wins against visitor wins for both extra-inning games and regulation length games for all seasons revealed that over all seasons the home team won more games, for both extra-inning games and regulation games (see Figure 1). Breaking down regulation length games by season also showed that across all seasons the home team won more games than the visiting team (see Figure 2 and Table 1). Additionally, breaking down each extra-inning game by season, generally shows the same pattern of the home team winning more games than the visitor, with the home team winning more games in 15 of the 21 seasons (see Figure 2 and Table 2). However, in the 2000 and 2012 seasons both the home team and visitor won an equal number of extra-inning games at 101 and 96 games apiece respectively (see Figure 2 and Table 2). Meanwhile, the visitor won more extra-inning games than the home team in 2001, 2014, 2019, and 2020 (see Figure 2 and Table 2).
@@ -429,7 +427,7 @@ t2 <- reg_count_yr %>%
 t3 <- cbind(t1, t2)
 # create kable table
 kableExtra::kbl(t3, caption = "Regular Inning Win Count for Home and Visitor by Season") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", full_width = T) %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position") %>% 
   kableExtra::add_header_above(c("Home" = 2, "Visitor" = 2))
 
 # remove placeholders
@@ -464,7 +462,7 @@ t3 <- cbind(t1, t2)
 
 # create kable table
 kableExtra::kbl(t3, caption = "Extra Inning Win Count for Home and Visitor by Season") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", full_width = T) %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position") %>% 
   kableExtra::add_header_above(c("Home" = 2, "Visitor" = 2))
 
 # remove placeholders
@@ -569,10 +567,12 @@ dftotal <- rbind(df2000, df2001, df2002, df2003, df2004, df2005, df2006, df2007,
 #rm(dftotal_NA)
 ```
 
-```{r runs expectancy matrix, echo=F}
+```{r memory, echo=FALSE, message=FALSE, include=FALSE, warning=FALSE}
 # set RAM access for RStudio to allow for knitting of RMarkdown document
 memory.limit(size = 32000)
+```
 
+```{r runs expectancy matrix, echo=F}
 ##----
 # GENERATE HALF-INNING DATA
 
@@ -863,10 +863,6 @@ rm(list = t3)
 rm(t3)
 ```
 
-# Analysis
-
-To begin, a run expectancy matrix was generated to calculate the average number of runs scored from the different base-out states. In baseball, there are three possible states of outs before an inning is over, e.g., zero, one, or two outs, and each base (i.e., first, second, and third) can either be in a state of being occupied or not occupied. Thereby giving 24 possible base-out states (8 base states x 3 out states = 24 base-out states). This was calculated for each MLB season from 2000 to 2020, as well as for the seasons combined. As can be seen
-
 ```{r total data RE24, echo=F, warning=F, message=F}
 ##----
 # CREATE HALF-INNING DATA
@@ -929,7 +925,9 @@ dftotal_prob1 <- dftotal_joined %>%
   # group by state
   dplyr::group_by(state) %>%
   # suummarise run probability of scoring at least one run from state
-  dplyr::summarise(run_prob = mean(runs_roi >= 1))
+  dplyr::summarise(run_prob = mean(runs_roi >= 1)) %>% 
+  dplyr::arrange(desc(run_prob)) %>% 
+  dplyr::rename(State = state, `Run Probability` = run_prob)
 
 
 ##----
@@ -943,12 +941,15 @@ dftotal_summarise <- dftotal_joined %>%
   dplyr::group_by(state) %>%
   # summarise to calculate the mean/average runs given a state and outs
   dplyr::summarise(`mean` = mean(runs_roi),
+                   `median` = median(runs_roi),
                    variance = var(runs_roi),
-                   `sd` = sd(runs_roi)) %>%
+                   `sd` = sd(runs_roi), 
+                   `range` = paste(min(runs_roi), "-", max(runs_roi), sep = "")) %>%
   # create new column to hold outs count
   dplyr::mutate(outs = substr(state, 5, 5)) %>%
   # arrange by outs count
   dplyr::arrange(outs)
+
 
 
 ##----
@@ -961,10 +962,50 @@ re24total <- matrix(round(dftotal_summarise$mean, 2), 8, 3) %>%
   magrittr::set_colnames(c("0 outs", "1 out", "2 outs")) %>%
   # set row names to given vector values
   magrittr::set_rownames(c("000", "001", "010", "011", "100", "101", "110", "111"))
+```
 
+# Analysis
+
+## Runs-Expectancy Matrix
+
+To begin, a run expectancy matrix was generated to calculate the average number of runs scored from the different base-out states. In baseball, there are three possible states of outs before an inning is over, e.g., zero, one, or two outs, and each base (i.e., first, second, and third) can either be in a state of being occupied or not occupied. Thereby giving 24 possible base-out states (8 base states x 3 out states = 24 base-out states). This was calculated for each MLB season from 2000 to 2020, as well as for the seasons combined. Table 3 shows the runs-expectancy matrix for the total combined seasons. To read this table, the the first column represents a base state with the next three columns showing an out state. Base states can be read as follows, 0 represents an unoccupied base with 1 representing an occupied base. First base is represented by the first numeral on the left, with second base being the middle numeral, and third base being the right-most numeral. For example, reading the table at the row beginning with 010 means a runner on second with the following average runs in the three out states. Continuing along this row, it can be seen that in this state with no outs an average number of 1.14 runs are scored, which drops to 0.69 average runs with one out, and subsequently 0.33 runs with two outs.
+
+```{r total RE24 table, echo=F, message=F, warning=F}
+# generate kable table for total RE24 matrix
 kableExtra::kbl(re24total, caption = "Runs Expectancy Matrix for All Seasons (2000-2020) Combined") %>% 
   kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
 ```
+
+In addition to the average runs scored, the variance and standard deviation of runs scored from a base-out state were also calculated and are displayed in Table 4. Here it can be seen that the base-out state with the greatest standard deviation is the bases loaded and no one out (111 0), with a variance of $\sigma^2$ = 3.34 and a standard deviation of $\sigma$ = 1.83. Additionally, the base-out state with the lowest standard deviation is no one on and two outs (000 2), with a variance of $\sigma^2$ = 0.19 and standard deviation of $\sigma$ = 0.44. Notably, the base-out state of runner on second and no one out is towards the middle of the base-out states in terms of standard deviation at position 11 of 24 and with a variance of $\sigma^2$ = 1.75 and standard deviation of $\sigma$ = 1.32 (see Table 4).
+
+```{r RE dist cent, echo=FALSE, message=FALSE, warning=F}
+# change dataset column names to title format ->
+# makes the table oh so pretty
+names(dftotal_summarise) <- stringr::str_to_title(names(dftotal_summarise))
+
+# using summarise dataset
+dftotal_summarise %>% 
+  # remove outs column
+  dplyr::select(-Outs) %>%
+  # fully capitalize SD
+  dplyr::rename(SD = Sd) %>% 
+  # arrange the table by SD
+  dplyr::arrange(SD) %>% 
+  # generate kable table
+  kableExtra::kbl(caption = "Distribution and Central Tendency for Expected Runs for All Seasons (2000-2020) Combined") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
+```
+
+However, while these tables show the average expected runs from a given base-out state, there is also the question as to the probability of a run actually scoring given a base-out state. Table 5 shows the mean of value of at least one run scored given each base-out state. Looking at this table, the base-out state with the greatest probability of one or more runs scoring is the bases loaded and no outs (111 0) with a probability of 0.86, and the lowest probability of one or more runs scoring is no one on and two outs (000 2) with a probability of 0.07. Looking to the base-out state of a runner on second and no outs (010 0), or the starting state for each extra-inning game in the 2020 MLB season, it can be seen that at least one run scoring given that state has a probability of 0.62. This is compared to the standard state of beginning of an inning with no runners and no outs (000 0), which has a probability of 0.28 for at least one or more runs scoring from that state.
+
+```{r RE run prob, echo=F, message=F, warning=F}
+kableExtra::kbl(dftotal_prob1, caption = "Probability of Scoring at least One Run from a Given Bae-Out State") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
+```
+
+## State Transitions
+
+A half-inning of baseball lasts until a third out is made and up to that point the game moves between the various possible base-out states. For example, a regulation half-inning could progress from the first batter as follows: no runners and no outs (000 0), to a runner on first with no outs (100 0), to no runners and two outs (000 2), to runner on second and two outs (010 2), to finally three outs and the end of the half-inning. Using the current base-out and the subsequent new base-out state, a transition matrix was produced to show the frequency at which one state followed another.
 
 ```{r total data simulation, echo=F, message=F, warning=F}
 ##----
@@ -1179,7 +1220,6 @@ kableExtra::kbl(p2, caption = "Probability of Next Base-Out State After Two At-B
   kableExtra::kable_styling(position = "center", latex_options = "hold_position")
 ```
 
-
 ```{r three at-bats, echo=F, warning=F, message=F}
 # multiply probability matrix by itself three times ->
 # finds probabilities of events after three at-bats
@@ -1202,9 +1242,9 @@ kableExtra::kbl(p3, caption = "Probability of Next Base-Out State After Three At
 
 # References
 
-Gatto, T. (2020, August 14). *NHL bubble, explained: A guide to the hub city rules, teams & schedule for Edmonton, Toronto*. Sporting News. https://www.sportingnews.com/us/nhl/news/nhl-bubble-hub-city-rules-teams-schedule-edmonton-toronto/72k8vc0u630k19xalra66xa3c
+Gatto, T. (2020, August 14). *NHL bubble, explained: A guide to the hub city rules, teams & schedule for Edmonton, Toronto*. Sporting News. <https://www.sportingnews.com/us/nhl/news/nhl-bubble-hub-city-rules-teams-schedule-edmonton-toronto/72k8vc0u630k19xalra66xa3c>
 
-Haislop, T. (2020, August 26). *NBA bubble explained: A complete guide to the rules, teams, schedule & more for Orlando games*. Sporting News. https://www.sportingnews.com/us/nba/news/nba-bubble-rules-teams-schedule-orlando/zhap66a9hcwq1khmcex3ggabo
+Haislop, T. (2020, August 26). *NBA bubble explained: A complete guide to the rules, teams, schedule & more for Orlando games*. Sporting News. <https://www.sportingnews.com/us/nba/news/nba-bubble-rules-teams-schedule-orlando/zhap66a9hcwq1khmcex3ggabo>
 
 Marchi, M., Albert, J., & Baumer, B. S. (2019a). Chapter 5: Value of plays using run expectancy. In, *Analyzing baseball data with R* (2nd ed.), (pp. 111-135). CRC Press
 
@@ -1212,6 +1252,6 @@ Marchi, M., Albert, J., & Baumer, B. S. (2019b). Chapter 9: Simulation. In, *Ana
 
 Marchi, M., Albert, J., & Baumer, B. S. (2019c). Appendix A: Retrosheet files reference. In, *Analyzing baseball data with R* (2nd ed.), (pp. 293-301). CRC Press
 
-McNamara, A. (2020, July 24). *Toronto Blue Jays to play majority of 2020 home games in Buffalo*. CBS News. https://www.cbsnews.com/news/toronto-blue-jays-home-games-buffalo-2020-season/
+McNamara, A. (2020, July 24). *Toronto Blue Jays to play majority of 2020 home games in Buffalo*. CBS News. <https://www.cbsnews.com/news/toronto-blue-jays-home-games-buffalo-2020-season/>
 
-Wagner, J. (2020, June 24). *Baseball’s New Rules: No Spitting, No Arguing, and Lots of Testing*. The New York Times. https://www.nytimes.com/2020/06/24/sports/baseball/mlb-coronavirus-rules.html
+Wagner, J. (2020, June 24). *Baseball's New Rules: No Spitting, No Arguing, and Lots of Testing*. The New York Times. <https://www.nytimes.com/2020/06/24/sports/baseball/mlb-coronavirus-rules.html>
