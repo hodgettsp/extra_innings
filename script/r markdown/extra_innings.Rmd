@@ -1007,8 +1007,6 @@ kableExtra::kbl(dftotal_prob1, caption = "Probability of Scoring at least One Ru
 
 A half-inning of baseball lasts until a third out is made and up to that point the game moves between the various possible base-out states. For example, a regulation half-inning could progress from the first batter as follows: no runners and no outs (000 0), to a runner on first with no outs (100 0), to no runners and two outs (000 2), to runner on second and two outs (010 2), to finally three outs and the end of the half-inning. Using the current base-out and the subsequent new base-out state, a transition table was produced to calculate the frequency at which one state followed another. From this transition table a proportional table was then produced to view the proportion at which one state moved to another. This table is displayed in Table 5. To read this table, each row and column represents a state, with the values in each cell representing the proportion of moving from the base-out state of that row to the corresponding column base-out state. For example, the first row of the table represents the starting state of a half-inning with no runners and no outs (000 0). Looking along this row, the next most likely state is no runners and one out (000 1) at 0.67. Following that, the next most likely state to follow no runners and no outs is runner on first and no outs (100 0) at 0.24. Lastly, any cell with a value of 0 represents a base-out state for which it is not possible for the base-out state of that row to transition. For example, it would not be possible to transition from no runners no outs (000 0) to runner on third and one out (001 1). Looking at the above example, the probability of those series of events would be 0.0009 or 0.24 x 0.12 x 0.05 x 0.63.
 
-To specifically examine the transition states following runner on second and no outs, Table 6 was created to filter for only the transition proportions following that state. Looking at this table it can be seen that the next most likely state following a runner on second and no outs is a runner on second with one out (010 1). This state is followed in likelihood by a runner on third with one out (001 1).
-
 ```{r total data simulation, echo=F, message=F, warning=F}
 ##----
 # JOIN DATA
@@ -1058,6 +1056,17 @@ tmatrix_total <- dftotal_joined %>%
   # assign object as table
   table()
 
+df_dblstate <- dftotal_joined %>% 
+  mutate(dbl_state = case_when(state == "010 0" ~ new_state)) %>% 
+  filter(state %in% dbl_state)
+
+tmatrix_dblstate <- df_dblstate %>% 
+  select(state, new_state) %>% 
+  table()
+
+pmatrix_dblstate <- round(prop.table(tmatrix_dblstate, 1), 4)
+pmatrix_dblstate <- rbind(pmatrix_dblstate, c(rep(0, 12), 1))
+
 
 ##----
 # GENERATE PROP TABLE
@@ -1072,6 +1081,8 @@ pmatrix_total <- rbind(pmatrix_total, c(rep(0, 24), 1))
 kableExtra::kbl(pmatrix_total, caption = "Proportional Matrix for Transitions Between Base-Out States") %>% 
   kableExtra::kable_styling(position = "center", latex_options = c("HOLD_position", "striped", "scaled_down"))
 ```
+
+To specifically examine the transition states following runner on second and no outs, Table 6 was created to filter for only the transition proportions following that state. Looking at this table it can be seen that the next most likely state following a runner on second and no outs is a runner on second with one out (010 1) at 0.38. This state is followed in likelihood by a runner on third with one out (001 1) at 0.27. However, this table only shows the next most likely base-out state after one at-bat. Alternatively, Table 7 shows the the likelihood of new base-out states after two at-bats, from which it can be seen that the most likely base-out state is runner on third and two outs (001 2) at 0.174. This is additionally followed in likelihood by runner on second and two outs (010 2) at 0.168. Lastly, Table 8 shows the likelihood of base-out states after three at-bats from the beginning state of runner on second and no outs. In this table it can be seen that the most likely state is three outs at 0.33. This is followed in likelihood by runner on first and two outs at 0.12.
 
 ```{r one at-bats, echo=F, warning=F, message=F}
 # multiply probability matrix by itself three times ->
@@ -1090,8 +1101,52 @@ p1 <- p1 %>%
   dplyr::arrange(desc(prob))
 
 kableExtra::kbl(p1, caption = "Probability of Next Base-Out State After One At-Bat for Man on Second no Outs") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
 ```
+
+```{r two at-bats, echo=F, warning=F, message=F}
+# multiply probability matrix by itself three times ->
+# finds probabilities of events after two at-bats
+p2 <- pmatrix_total %*% pmatrix_total
+
+# pipe multiplied probabilities
+p2 <- p2 %>%
+  # coerce object as tibble with rownames as state
+  tibble::as_tibble(rownames = "state") %>%
+  # filter for man on second no outs
+  dplyr::filter(state == "010 0") %>%
+  # gather prob values using new_state as key
+  tidyr::gather(key = "new_state", value = "prob", -state) %>%
+  # arrange by descending probability
+  dplyr::arrange(desc(prob))
+
+kableExtra::kbl(p2, caption = "Probability of Next Base-Out State After Two At-Bats for Man on Second no Outs") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
+```
+
+```{r three at-bats, echo=F, warning=F, message=F}
+# multiply probability matrix by itself three times ->
+# finds probabilities of events after three at-bats
+p3 <- pmatrix_total %*% pmatrix_total %*% pmatrix_total
+
+# pipe multiplied probabilities
+p3 <- p3 %>%
+  # coerce object as tibble with rownames as state
+  tibble::as_tibble(rownames = "state") %>%
+  # filter for man on second no outs
+  dplyr::filter(state == "010 0") %>%
+  # gather prob values using new_state as key
+  tidyr::gather(key = "new_state", value = "prob", -state) %>%
+  # arrange by descending probability
+  dplyr::arrange(desc(prob))
+
+kableExtra::kbl(p3, caption = "Probability of Next Base-Out State After Three At-Bats for Man on Second no Outs") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
+```
+
+## Runs Simulation
+
+As a final analysis a multi-chain analysis was performed to simulate the number of runs scored in a half-inning
 
 ```{r count function, echo=FALSE, warning=F, message=F}
 # assign new function count runners out ->
@@ -1162,6 +1217,17 @@ rtotal <- outer(runners_out + 1, runners_out, FUN = "-")
 names(rtotal) <- names(tmatrix_total)[-25]
 # bind final column of 0s to rtotal
 rtotal <- cbind(rtotal, rep(0, 24))
+
+########################################################
+runners_out_dbl <- sapply(row.names(tmatrix_total),
+                      count_runners_out)[-20]
+
+# assign new object rtotal to calculate runs scored formula
+rdbl <- outer(runners_out_dbl + 1, runners_out_dbl, FUN = "-")
+# assign names in rtotal using names in tmatrix
+names(rdbl) <- names(tmatrix_total)[-20]
+# bind final column of 0s to rtotal
+rdbl <- cbind(rdbl, rep(0, 19))
 ```
 
 ```{r simulate function, echo=F}
@@ -1176,10 +1242,10 @@ sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
   # set runs to start at 0
   runs <- 0
   # while s is less than 25
-  while(s < 25){
+  while(s < 20){
     # assign to s_new from 1 through 25 of size 1 ->
     # with probability from given tmatrix at position s
-    s_new <- sample(1:25, size = 1, prob = .tmatrix[s, ])
+    s_new <- sample(1:20, size = 1, prob = .tmatrix[s, ])
     # assign path as path and sample 
     path <- c(path, s_new)
     # assign runs as runs + run matrix at position s and s_new
@@ -1198,53 +1264,13 @@ sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
 set.seed(515)
 
 # run 20,000 simulations 
-runs_simulation <- replicate(20000, sim_half_inning(tmatrix_total, rtotal))
+runs_simulation <- replicate(20000, sim_half_inning(tmatrix_dblstate, rdbl))
 
 # assign simulations as a table
 runs_table <- table(runs_simulation)
 
 # calculate the probability of scoring 1 or more runs
 prob_two_or_more <- sum(runs_simulation >= 2) / 20000
-```
-
-```{r two at-bats, echo=F, warning=F, message=F}
-# multiply probability matrix by itself three times ->
-# finds probabilities of events after two at-bats
-p2 <- pmatrix_total %*% pmatrix_total
-
-# pipe multiplied probabilities
-p2 <- p2 %>%
-  # coerce object as tibble with rownames as state
-  tibble::as_tibble(rownames = "state") %>%
-  # filter for man on second no outs
-  dplyr::filter(state == "010 0") %>%
-  # gather prob values using new_state as key
-  tidyr::gather(key = "new_state", value = "prob", -state) %>%
-  # arrange by descending probability
-  dplyr::arrange(desc(prob))
-
-kableExtra::kbl(p2, caption = "Probability of Next Base-Out State After Two At-Bats for Man on Second no Outs") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
-```
-
-```{r three at-bats, echo=F, warning=F, message=F}
-# multiply probability matrix by itself three times ->
-# finds probabilities of events after three at-bats
-p3 <- pmatrix_total %*% pmatrix_total %*% pmatrix_total
-
-# pipe multiplied probabilities
-p3 <- p3 %>%
-  # coerce object as tibble with rownames as state
-  tibble::as_tibble(rownames = "state") %>%
-  # filter for man on second no outs
-  dplyr::filter(state == "010 0") %>%
-  # gather prob values using new_state as key
-  tidyr::gather(key = "new_state", value = "prob", -state) %>%
-  # arrange by descending probability
-  dplyr::arrange(desc(prob))
-
-kableExtra::kbl(p3, caption = "Probability of Next Base-Out State After Three At-Bats for Man on Second no Outs") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
 ```
 
 # References
