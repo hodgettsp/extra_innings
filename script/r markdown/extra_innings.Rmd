@@ -315,7 +315,7 @@ ggplot(combined_counts, aes(x = winning_team, y = count, fill = winning_team))+
         # set panel spacing to 10mm
         panel.spacing = unit(10, "mm"))+
   # set colour values
-  scale_fill_manual(values = c("#00a9e0", "#f5003d"),
+  scale_fill_manual(values = c("#034732", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -350,7 +350,7 @@ ggplot(reg_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
         # set legend orientation to horizontal
         legend.direction = "horizontal")+
   # set fill values
-  scale_fill_manual(values = c("#00a9e0", "#f5003d"),
+  scale_fill_manual(values = c("#034732", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -388,7 +388,7 @@ ggplot(extra_count_yr, aes(x = winning_team, y = count, fill = winning_team))+
         # set legend orientation to horizontal
         legend.direction = "horizontal")+
   # set fill values
-  scale_fill_manual(values = c("#00a9e0", "#f5003d"),
+  scale_fill_manual(values = c("#034732", "#f6aa1c"),
                     labels = c("Home", "Visitor"))+
   # set x labels
   scale_x_discrete(labels = c("Home", "Visitor"))+
@@ -1045,7 +1045,6 @@ dftotal_joined <- dftotal %>%
   # create new column to hold new state
   dplyr::mutate(new_state = gsub("[0-1]{3} 3", "3", new_state))
 
-
 ##----
 # GENERATE TRANSITION MATRIX
 
@@ -1055,18 +1054,6 @@ tmatrix_total <- dftotal_joined %>%
   select(state, new_state) %>%
   # assign object as table
   table()
-
-df_dblstate <- dftotal_joined %>% 
-  mutate(dbl_state = case_when(state == "010 0" ~ new_state)) %>% 
-  filter(state %in% dbl_state)
-
-tmatrix_dblstate <- df_dblstate %>% 
-  select(state, new_state) %>% 
-  table()
-
-pmatrix_dblstate <- round(prop.table(tmatrix_dblstate, 1), 4)
-pmatrix_dblstate <- rbind(pmatrix_dblstate, c(rep(0, 12), 1))
-
 
 ##----
 # GENERATE PROP TABLE
@@ -1079,10 +1066,11 @@ pmatrix_total <- rbind(pmatrix_total, c(rep(0, 24), 1))
 
 ```{r ptable, echo=F, message=FALSE, warning=FALSE}
 kableExtra::kbl(pmatrix_total, caption = "Proportional Matrix for Transitions Between Base-Out States") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = c("HOLD_position", "striped", "scaled_down"))
+  kableExtra::kable_styling(position = "center", latex_options = c("HOLD_position", "striped", "scale_down")) %>% 
+  kableExtra::landscape()
 ```
 
-To specifically examine the transition states following runner on second and no outs, Table 6 was created to filter for only the transition proportions following that state. Looking at this table it can be seen that the next most likely state following a runner on second and no outs is a runner on second with one out (010 1) at 0.38. This state is followed in likelihood by a runner on third with one out (001 1) at 0.27. However, this table only shows the next most likely base-out state after one at-bat. Alternatively, Table 7 shows the the likelihood of new base-out states after two at-bats, from which it can be seen that the most likely base-out state is runner on third and two outs (001 2) at 0.174. This is additionally followed in likelihood by runner on second and two outs (010 2) at 0.168. Lastly, Table 8 shows the likelihood of base-out states after three at-bats from the beginning state of runner on second and no outs. In this table it can be seen that the most likely state is three outs at 0.33. This is followed in likelihood by runner on first and two outs at 0.12.
+To specifically examine the transition states following runner on second and no outs, Table 7 was created to filter for only the transition proportions following that state. Looking at this table it can be seen that the next most likely state following a runner on second and no outs is a runner on second with one out (010 1) at 0.38. This state is followed in likelihood by a runner on third with one out (001 1) at 0.27. However, this table only shows the next most likely base-out state after one at-bat. Alternatively, Table 8 shows the the likelihood of new base-out states after two at-bats, from which it can be seen that the most likely base-out state is runner on third and two outs (001 2) at 0.174. This is additionally followed in likelihood by runner on second and two outs (010 2) at 0.168. Lastly, Table 89shows the likelihood of base-out states after three at-bats from the beginning state of runner on second and no outs. In this table it can be seen that the most likely state is three outs at 0.33. This is followed in likelihood by runner on first and two outs at 0.12.
 
 ```{r one at-bats, echo=F, warning=F, message=F}
 # multiply probability matrix by itself three times ->
@@ -1146,7 +1134,7 @@ kableExtra::kbl(p3, caption = "Probability of Next Base-Out State After Three At
 
 ## Runs Simulation
 
-As a final analysis a multi-chain analysis was performed to simulate the number of runs scored in a half-inning
+As a final analysis a multi-chain analysis was performed to simulate the number of runs scored in a half-inning across all seasons. For this analysis, runs scored was simulated using the formula $RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$, where runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners}$ and outs $O$ before $(b)$ the event plus one ($1$) and the number of runners $N_{runners}$ plus outs $O$ after $(a)$ after the event (Marchi et al., 2019b). The multi-chain analysis was computed by computing the number of runs for a given state using the given formula and then samples of size one (1) were selected for the length of a vector of length 25 using the probability weights from the given transition matrix. Runs were then returned as an indexed location from the calculated runs as weighted by the probabilities provided by the transition matrix. The simulation was then set to run for 20,000 simulations, results of which can be seen in Table 10. From this table it can be seen that the most likely outcome in a half-inning is that no runs are scored at 0.73. Additionally, the probability of scoring only one run can be seen as 0.14, whereas the probability of scoring one or more runs can be seen as 0.27. Lastly, the probability of scoring two or more runs in a half-inning is 0.13, slightly less than the probability of scoring only one run at 0.14.
 
 ```{r count function, echo=FALSE, warning=F, message=F}
 # assign new function count runners out ->
@@ -1157,18 +1145,15 @@ count_runners_out <- function(.state){
   .state %>%
     # look for pattern ""
     stringr::str_split("") %>%
-    # pluck indexed value at index 1 
+    # pluck value at index 1 
     purrr::pluck(1) %>%
     # set as numeric
     as.numeric() %>% 
-    # sum values with removal of NAs
+    # sum values with removal of NAs ->
+    # gives number of runners and outs
     sum(na.rm = T)
 }
 ```
-
-Runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners}$ and outs $O$ before $(b)$ the event plus one and the number of runners $N_{runners}$ plus outs $O$ after $(a)$ after the event.
-
-$$RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$$
 
 ```{r runners out, echo=F}
 # for the length of t2
@@ -1178,8 +1163,6 @@ for(i in 1:length(t2)){
   assign(paste0(t2[i], "_rout"), sapply(row.names(get(paste0(t2[1], "_tmatrix"))),
          count_runners_out))[-25]
 }
-
-
 
 t3 <- c()
 
@@ -1207,7 +1190,7 @@ for(i in 1:length(t2)){
 ```{r total runners out, echo=F, message=F, warning=F}
 # assign new object runners_out using sapply to apply ->
 # count_runners_out function to tmatrix ->
-# dropping index 25
+# dropping index 25 as this is where 000 0 repeats
 runners_out <- sapply(row.names(tmatrix_total),
                       count_runners_out)[-25]
 
@@ -1217,17 +1200,6 @@ rtotal <- outer(runners_out + 1, runners_out, FUN = "-")
 names(rtotal) <- names(tmatrix_total)[-25]
 # bind final column of 0s to rtotal
 rtotal <- cbind(rtotal, rep(0, 24))
-
-########################################################
-runners_out_dbl <- sapply(row.names(tmatrix_total),
-                      count_runners_out)[-20]
-
-# assign new object rtotal to calculate runs scored formula
-rdbl <- outer(runners_out_dbl + 1, runners_out_dbl, FUN = "-")
-# assign names in rtotal using names in tmatrix
-names(rdbl) <- names(tmatrix_total)[-20]
-# bind final column of 0s to rtotal
-rdbl <- cbind(rdbl, rep(0, 19))
 ```
 
 ```{r simulate function, echo=F}
@@ -1242,10 +1214,10 @@ sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
   # set runs to start at 0
   runs <- 0
   # while s is less than 25
-  while(s < 20){
+  while(s < 25){
     # assign to s_new from 1 through 25 of size 1 ->
     # with probability from given tmatrix at position s
-    s_new <- sample(1:20, size = 1, prob = .tmatrix[s, ])
+    s_new <- sample(1:25, size = 1, prob = .tmatrix[s, ])
     # assign path as path and sample 
     path <- c(path, s_new)
     # assign runs as runs + run matrix at position s and s_new
@@ -1264,14 +1236,30 @@ sim_half_inning <- function(.tmatrix, .rmatrix, start = 1){
 set.seed(515)
 
 # run 20,000 simulations 
-runs_simulation <- replicate(20000, sim_half_inning(tmatrix_dblstate, rdbl))
+runs_simulation <- replicate(20000, sim_half_inning(tmatrix_total, rtotal))
 
 # assign simulations as a table
 runs_table <- table(runs_simulation)
 
+# calculate the probability of scoring at least 1 run
+prob_one <- sum(runs_simulation == 1) / 20000
+
+# calculate the probability of scoring 1 or more runs
+prob_one_or_more <- sum(runs_simulation >= 1) / 20000
+
 # calculate the probability of scoring 1 or more runs
 prob_two_or_more <- sum(runs_simulation >= 2) / 20000
 ```
+
+```{r runs table, echo=F, message=F, warning=F}
+kableExtra::kbl(runs_table, caption = "Multi-Chain Analysis: Possible Runs Scored in Half-Inning Across 20,000 Simulations") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
+```
+
+
+# Discussion
+
+Given these results, it cannot be concluded that the rule of beginning each extra-inning with a runner on second gives an advantage to the visitor team over the home team anymore than standard extra-inning play. While the rule does increase the expected average number of runs, both teams experience this increase. The disadvantage comes from if the visitor team were to score in extra-inning games, they would only require one run to win the game. Whereas, if the visitor were to score in the top-half of the inning, the home team would require two runs to win the game. Effectively, it is the structure of extra-inning games to begin that gives the visitor an advantage as long as they score in the top-half of the inning. This structure is just exaggerated by the rule of beginning each half-inning with a runner on second by increasing the probability that at least one run will score. However, given that the most likely outcome after three at-bats with a runner on second and no outs is three outs and the end of the half-inning, this advantage may not be so vast. Which may also be explained by other seasons in which the visitor won more extra-inning games than the home team. Additionally, it may also be the case that the structure of extra-inning games lends itself to more randomness and that a similar effect would appear if more games were played under the same structure. Or, that the randomness would become lessened and as more extra-inning games were played a similar effect of regulation length games with the home team winning more than the visitor would appear.
 
 # References
 
