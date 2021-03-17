@@ -1,11 +1,11 @@
 ---
-title: "A Consideration of Probability and Runs Scored Major League Baseball Extra-Inning Games"
+title: "A Consideration of Game Length and Probability of Runs Scored with Major League Baseball Runner on Second Extra-Inning Rule"
 author: "Paul A. Hodgetts"
-date: "02/03/2021"
+date: "16/03/2021"
 output: 
   pdf_document:
     latex_engine: lualatex
-abstract: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Nisl suscipit adipiscing bibendum est ultricies integer quis auctor elit. Facilisis leo vel fringilla est. Dignissim suspendisse in est ante in. Condimentum vitae sapien pellentesque habitant. Dui vivamus arcu felis bibendum ut tristique et egestas. Orci sagittis eu volutpat odio facilisis mauris."
+abstract: "In the COVID-19 shortened Major League Baseball season of 2020, the MLB head-office implemented a rule that stated if a game were to go beyond the nine regulation innings, then each team would begin each extra half-inning with a runner on second base. This rule was implemented in hopes that it would limit exposure between players by shortening the length of extra-inning games by increasing the probability of a run being scored. This paper explores whether the rule did indeed shorten the length of extra-inning games and subsequently protect players, as well as whether the rule provided an advantage to the visitor team. Results of a Bayesian t-test suggest that the rule may have shortened the length of extra-inning games and subsequently protected players. Additionally, it is discussed that any advantage as provided by the rule may only be an exaggeration of existing structures within extra-inning games, and that beneficial results of the extra-inning rule may be a result of a limited sample size. Lastly, extra-inning strategy, probability of run scoring, and limitations are discussed."
 ---
 
 ```{r setup, include=FALSE}
@@ -77,8 +77,6 @@ font_add_google(name = "Jost", family = "jost-sans-serif")
 # loads font
 showtext_auto()
 ```
-
-\newpage
 
 # Data
 
@@ -433,12 +431,14 @@ t2 <- reg_count_yr %>%
 t3 <- cbind(t1, t2)
 # create kable table
 kableExtra::kbl(t3, caption = "Regular Inning Win Count for Home and Visitor by Season") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", font_size = 8) %>% 
   kableExtra::add_header_above(c("Home" = 2, "Visitor" = 2))
 
 # remove placeholders
 rm(t1, t2, t3)
 ```
+
+\vspace{-2.5truemm}
 
 ```{r extra table, echo=FALSE}
 # set extra inning wins into placeholders ->
@@ -468,7 +468,7 @@ t3 <- cbind(t1, t2)
 
 # create kable table
 kableExtra::kbl(t3, caption = "Extra Inning Win Count for Home and Visitor by Season") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position") %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", font_size = 8) %>% 
   kableExtra::add_header_above(c("Home" = 2, "Visitor" = 2))
 
 # remove placeholders
@@ -503,6 +503,8 @@ bt_2018 <- Bolstad::bayes.t.test(sample(extras_20$length_of_game_outs, size = 60
 # 2019 2018 mean length of extra-innings games
 bt_1918 <- Bolstad::bayes.t.test(sample(extras_19$length_of_game_outs, size = 60), sample(extras_18$length_of_game_outs, size = 60))
 ```
+
+\newpage
 
 # Analysis
 
@@ -1061,8 +1063,6 @@ kableExtra::kbl(dftotal_prob1, caption = "Probability of Scoring at least One Ru
   kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
 ```
 
-\newpage
-
 ## State Transitions
 
 A half-inning of baseball lasts until a third out is made and up to that point the game moves between the various possible base-out states. For example, a regulation half-inning could progress from the first batter as follows: no runners and no outs (000 0), a runner on first with no outs (100 0), no runners and two outs (000 2), runner on second and two outs (010 2), to finally three outs and the end of the half-inning. By establishing the current base-out and the subsequent new base-out state, a transition table was produced to calculate the frequency at which one state followed another. From this transition table a proportional table was then produced to view the proportion at which one state moved to another. This table is displayed in Table 7. To read this table, each row and column represents a base-out state, with the values in each cell representing the proportion of moving from the base-out state of that row to the corresponding column base-out state. For example, the first row of the table represents the starting state of a half-inning with no runners and no outs (000 0). Looking along this row, the next most likely state is no runners and one out (000 1) at 0.67. Following that, the next most likely state is runner on first and no outs (100 0) at 0.24. Lastly, any cell with a value of 0 represents a base-out state for which it is not possible for the base-out state of that row to transition. For example, it would not be possible to transition from no runners no outs (000 0) to runner on third and one out (001 1). Looking at the above example, the probability of those series of events would be 0.00085 or 0.085% (0.24 x 0.12 x 0.047 x 0.63).
@@ -1149,7 +1149,7 @@ p1 <- p1 %>%
   dplyr::arrange(desc(prob))
 
 kableExtra::kbl(p1, caption = "Probability of Next Base-Out State After One At-Bat for Man on Second no Outs") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", font_size = 8)
 ```
 
 ```{r two at-bats, echo=F, warning=F, message=F}
@@ -1169,7 +1169,7 @@ p2 <- p2 %>%
   dplyr::arrange(desc(prob))
 
 kableExtra::kbl(p2, caption = "Probability of Next Base-Out State After Two At-Bats for Man on Second no Outs") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", font_size = 8)
 ```
 
 ```{r three at-bats, echo=F, warning=F, message=F}
@@ -1189,14 +1189,14 @@ p3 <- p3 %>%
   dplyr::arrange(desc(prob))
 
 kableExtra::kbl(p3, caption = "Probability of Next Base-Out State After Three At-Bats for Man on Second no Outs") %>% 
-  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position")
+  kableExtra::kable_styling(position = "center", latex_options = "HOLD_position", font_size = 8)
 ```
 
 \newpage
 
 ## Runs Simulation
 
-As a final analysis a multi-chain model was generated to simulate the number of runs scored in a half-inning across all seasons. For this analysis, runs scored was simulated using the formula $RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$, where runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners}$ and outs $O$ before $(b)$ the event plus one ($1$) and the number of runners $N_{runners}$ plus outs $O$ after $(a)$ the event (Marchi et al., 2019b). The multi-chain model was generated by computing the number of runs for a given state using the given formula and then samples of size one (1) were selected for the length of a vector of length 25 using the probability weights from the transition matrix. Runs were then returned as an indexed location from the calculated runs as weighted by the probabilities provided by the transition matrix. The simulation was then set to run for 20,000 simulations, results of which can be seen in Table 11. From this table it can be seen that the most likely outcome in a half-inning is that no runs are scored. Additionally, the probability of scoring only one run can be seen as 0.14 (2837/20000), whereas the probability of scoring one or more runs can be seen as 0.27 ((2837+1276+620+286+128+48+27+11+7)/20000). Lastly, the probability of scoring two or more runs in a half-inning is 0.13 ((1276+620+286+128+48+27+11+7)/20000), slightly less than the probability of scoring only one run at 0.14.
+As a final analysis a multi-chain model was generated to simulate the number of runs scored in a half-inning across all seasons. For this analysis, runs scored was simulated using the formula $RUNS = (N^{(b)}_{runners} + O^{(b)} + 1) - (N^{(a)}_{runners} + o^{(a)})$, where runs scored $RUNS$ is equal to difference between the sum of runners $N_{runners}$ and outs $O$ before $(b)$ the event plus one ($1$) and the number of runners $N_{runners}$ plus outs $O$ after $(a)$ the event (Marchi et al., 2019b). The multi-chain model was generated by computing the number of runs for a given state using the given formula and then samples of size one (1) were selected for the length of a vector of length 25 (each base-out state plus three outs) using the probability weights from the transition matrix. Runs were then returned as an indexed location from the calculated runs as weighted by the probabilities provided by the transition matrix. The simulation was then set to run for 20,000 simulations, results of which can be seen in Table 11. From this table it can be seen that the most likely outcome in a half-inning is that no runs are scored. Additionally, the probability of scoring only one run can be seen as 0.14 (2837/20000), whereas the probability of scoring one or more runs can be seen as 0.27 ((2837+1276+620+286+128+48+27+11+7)/20000). Lastly, the probability of scoring two or more runs in a half-inning is 0.13 ((1276+620+286+128+48+27+11+7)/20000), slightly less than the probability of scoring only one run at 0.14.
 
 ```{r count function, echo=FALSE, warning=F, message=F}
 # assign new function count runners out ->
@@ -1320,7 +1320,25 @@ kableExtra::kbl(runs_table, caption = "Multi-Chain Analysis: Possible Runs Score
 
 # Discussion
 
-Given these results, it cannot be concluded that the rule of beginning each extra-inning with a runner on second gives an advantage to the visitor team over the home team anymore than standard extra-inning play. While the rule does increase the expected average number of runs, both teams experience this increase. The disadvantage comes from if the visitor team were to score in extra-inning games, they would only require one run to win the game. Whereas, if the visitor were to score in the top-half of the inning, the home team would require two runs to win the game. Effectively, it is the structure of extra-inning games to begin that gives the visitor an advantage as long as they score in the top-half of the inning. This structure is just exaggerated by the rule of beginning each half-inning with a runner on second by increasing the probability that at least one run will score. However, given that the most likely outcome after three at-bats with a runner on second and no outs is three outs and the end of the half-inning, this advantage may not be so vast. Which may also be explained by other seasons in which the visitor won more extra-inning games than the home team. Additionally, it may also be the case that the structure of extra-inning games lends itself to more randomness and that a similar effect would appear if more games were played under the same structure. Or, that the randomness would become lessened and as more extra-inning games were played a similar effect of regulation length games with the home team winning more than the visitor would appear.
+## Strategy
+
+Extra-inning games are played such that the game ends within a full inning when either the home team scores more runs than the visitor team, or the visitor scores more runs and prevents the home team from scoring. Thus, if the visitor team scores in their half of the inning, it becomes more difficult for the home team to win as they now need to score at least one more run than the visitor. As such, the strategy with which a manager approaches extra-inning games may differ from how they would the regulation innings. Especially with the implementation of the runner-on-second rule. For instance, by beginning the half-inning with a runner already on base, the visitor team need not play to get a runner on base and raise their subsequent probability of winning. Indeed, by only needing one run and then to prevent the home team from scoring the visitor team can sacrifice batters to move the runner along. For example, a sacrifice bunt to move the runner to third. Which despite having a lower number of average runs scored than a runner on second with no outs (1.14 to 0.97, see Table 4) does increase the probability of at least one run scoring from 0.62 to 0.66 (see Table 6). This differs from the standard way in which an extra-innings game begins, as in that state of no runners and no outs a manager would strategize to get players immediately on base so as to increase the probability of scoring a run from 0.28 (see Table 6). As such, the rule of runner-on-second may change the way in which extra-inning games are approached. 
+
+## Advantage
+
+However, given that the most likely results after three at-bats with a runner on second with no outs is three outs, it cannot be concluded that the runner-on-second provides an advantage to the visitor team. At least, not anymore than previously existed within the standard format of extra-inning games. Additionally, that extra-inning games seem to follow the pattern of more home team wins, this advantage may not be so great as to produce a discernible effect.
+
+## Player Safety
+
+Given the results of the Bayesian t-test analysis, it may be suggested that the run-on-second rule was successful in shortening the length of extra-inning games and the exposure players experienced between teams. As such, MLB may ahve been correct in implementing the rule to ensure the safety of their players. However, given that the 2020 season only amounted to 68 observations in extra-inning games, this finding may change if the rule were implemented within a longer season.
+
+# Conclusion
+
+In conclusion, the runner-on-second rule for extra-inning games may indeed protect players from an increased exposure to players on other teams. Thereby protecting the players from possible exposure to COVID-19 and protecting the health of the players and organization staff. Given that COVID-19 can lead to death and unknown future health concerns, this rule is acting within the best interests of the players' health outside of allowing ties after nine innings or not hosting a season. However, these beneficial results may only be caused by the shortened season, and a longer season may not show a similar effect. Second, this rule does not seem to make the playing-field any less fair than was already the case regarding extra-inning games. While the rule may change the way in which managers approach extra-inning games, the most likely outcome for the given base-out state is still three outs. As such, the rule only seems to exaggerate any effects that may already be present in the structure of extra-inning games. If further or more robust analysis does reveal that the rule does shorten the length of extra-inning games and MLB wishes to shorten the amount of baseball being played, then this may be a rule that MLB would look to implement long-term. However, that the rule does not necessarily improve upon the design of extra-innings, and may limit the amount of baseball played, this may not be a rule that MLB would be interested in implementing outside of the 2020 season.
+
+# Limitations
+
+The first limitation of this analysis is the limited sample size of games in which the runner-on-second rule was implemented. Given the limited sample size as compared to other seasons, it is difficult to make a conclusion from any comparison. Additionally, a more robust analysis than a Bayesian t-test may provide more conclusive results. Regarding the multi-chain model, this in general uses transitions from half-innings that begin with no runners on and no outs. A more robust analysis would use the priors from the transitions of states after a runner on second and no outs.
 
 \newpage
 
@@ -1330,7 +1348,7 @@ Allen, S. (2020, July 13). *A guide to MLB's extra-innings rule for 2020*. The W
 
 Baumer, B. (2019, March 15). *baseball_r*. [Code]. GitHub. <https://github.com/beanumber/baseball_R/blob/master/scripts/parse_retrosheet_pbp.R>
 
-Colin Douglas and Richard Scriven (2020). retrosheet: Import Professional Baseball Data from 'Retrosheet'. R package version 1.1.3. <https://CRAN.R-project.org/package=retrosheet>
+Douglas, C. & Scriven, R. (2020). retrosheet: Import Professional Baseball Data from 'Retrosheet'. R package version 1.1.3. <https://CRAN.R-project.org/package=retrosheet>
 
 Gatto, T. (2020, August 14). *NHL bubble, explained: A guide to the hub city rules, teams & schedule for Edmonton, Toronto*. Sporting News. <https://www.sportingnews.com/us/nhl/news/nhl-bubble-hub-city-rules-teams-schedule-edmonton-toronto/72k8vc0u630k19xalra66xa3c>
 
@@ -1346,13 +1364,13 @@ Max (2013, April 14). *fields* [Data set]. GitHub. <https://github.com/maxtoki/b
 
 McNamara, A. (2020, July 24). *Toronto Blue Jays to play majority of 2020 home games in Buffalo*. CBS News. <https://www.cbsnews.com/news/toronto-blue-jays-home-games-buffalo-2020-season/>
 
-Kirill Müller (2020). here: A Simpler Way to Find Your Files. R package version 1.0.1. <https://CRAN.R-project.org/package=here>
+Müller, K. (2020). here: A Simpler Way to Find Your Files. R package version 1.0.1. <https://CRAN.R-project.org/package=here>
 
 Retrosheet. (2021). *Retrosheet*. <https://retrosheet.org/>
 
 Wagner, J. (2020, June 24). *Baseball's New Rules: No Spitting, No Arguing, and Lots of Testing*. The New York Times. <https://www.nytimes.com/2020/06/24/sports/baseball/mlb-coronavirus-rules.html>
 
-H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.
+Wickham, H. (2016). ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York.
 
 Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, <https://doi.org/10.21105/joss.01686>
 
